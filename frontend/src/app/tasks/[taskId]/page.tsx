@@ -297,12 +297,12 @@ export default function TaskDetailPage() {
                 title="Show Wikipedia: Isabel Garcés in viewer"
               >
                 <div className="mb-2">
-                  <span className="font-semibold text-xs text-[#60758a]">Claim:</span>
-                  <p className="text-[#121416] text-xs mb-2">{task.claim || 'No claim provided'}</p>
+                  <span className="font-semibold text-sm text-[#60758a]">Claim:</span>
+                  <p className="text-[#121416] text-sm mb-2">{task.claim || 'No claim provided'}</p>
                 </div>
                 <div>
-                  <span className="font-semibold text-xs text-[#60758a]">Context:</span>
-                  <p className="text-[#121416] text-xs">{task.context || 'No context provided'}</p>
+                  <span className="font-semibold text-sm text-[#60758a]">Context:</span>
+                  <p className="text-[#121416] text-sm">{task.context || 'No context provided'}</p>
                 </div>
               </section>
               {/* Analysis Section */}
@@ -311,8 +311,8 @@ export default function TaskDetailPage() {
                 onClick={() => setWikiUrl('https://en.wikipedia.org/wiki/1937_Pittsburgh_Pirates_(NFL)_season#Week_2_(Sunday_September_19,_1937):_Brooklyn_Dodgers')}
                 title="Show Wikipedia: 1937 Pittsburgh Pirates NFL Season, Week 2 in viewer"
               >
-                <h2 className="text-[#121416] text-sm font-bold mb-3">Analysis</h2>
-                <p className="text-[#121416] text-xs">{task.analysis || 'No analysis provided'}</p>
+                <h2 className="text-[#121416] text-base font-bold mb-3">Analysis</h2>
+                <p className="text-[#121416] text-sm">{task.analysis || 'No analysis provided'}</p>
               </section>
               {/* References Section */}
               {task.references && task.references.length > 0 && (
