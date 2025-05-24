@@ -24,14 +24,6 @@ interface TaskDetail {
   references?: string[];
 }
 
-interface User {
-  id: string;
-  email: string;
-  name: string | null;
-  picture: string | null;
-  token: string;
-}
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
 
 export default function TaskDetailPage() {
@@ -141,6 +133,12 @@ export default function TaskDetailPage() {
 
       // Show confetti
       showConfetti();
+      <ReactConfetti
+        width={windowSize.width}
+        height={windowSize.height}
+        recycle={false}
+        numberOfPieces={500}
+      />
 
       // Update completed tasks count in navbar
       const completedTasksResponse = await fetch(`${API_URL}/api/users/${userData.id}/completed-tasks`, {

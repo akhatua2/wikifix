@@ -13,10 +13,10 @@ export default function AboutPage() {
         <section className="mb-16">
           <h2 className="text-2xl font-semibold mb-6">AI-Human Collaboration</h2>
           <p className="mb-4 text-gray-700">
-            We've used our state-of-the-art AI system to analyze millions of Wikipedia articles and identify potential inconsistencies between the text and cited sources.
+            We&apos;ve used our state-of-the-art AI system to analyze millions of Wikipedia articles and identify potential inconsistencies between the text and cited sources.
           </p>
           <p className="mb-4 text-gray-700">
-            Now we need your help to review these findings. Human judgment is essential to verify what our AI has flagged and help propose thoughtful improvements to Wikipedia's content.
+            Now we need your help to review these findings. Human judgment is essential to verify what our AI has flagged and help propose thoughtful improvements to Wikipedia&apos;s content.
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
@@ -57,11 +57,11 @@ export default function AboutPage() {
           <div className="space-y-8">
             <div className="p-6 border border-gray-200 rounded-lg bg-white shadow-sm">
               <h3 className="text-xl font-semibold mb-4">1. Select a Topic</h3>
-              <p className="text-gray-700">Browse through our collection of topics based on your interests or expertise. Choose something you're familiar with or excited to learn about.</p>
+              <p className="text-gray-700">Browse through our collection of topics based on your interests or expertise. Choose something you&apos;re familiar with or excited to learn about.</p>
             </div>
             <div className="p-6 border border-gray-200 rounded-lg bg-white shadow-sm">
               <h3 className="text-xl font-semibold mb-4">2. Review Information</h3>
-              <p className="text-gray-700">Check if the information matches what the sources say. Our AI has already flagged potential issues, but your human judgment is crucial to confirm if there's really a problem.</p>
+              <p className="text-gray-700">Check if the information matches what the sources say. Our AI has already flagged potential issues, but your human judgment is crucial to confirm if there&apos;s really a problem.</p>
             </div>
             <div className="p-6 border border-gray-200 rounded-lg bg-white shadow-sm">
               <h3 className="text-xl font-semibold mb-4">3. Submit Your Feedback</h3>

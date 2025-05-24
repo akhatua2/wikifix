@@ -1,8 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import TaskSkeleton from '@/components/TaskSkeleton';
-import Split from 'react-split';
 
 interface TaskData {
   id: string;
@@ -13,22 +11,7 @@ interface TaskData {
   xp?: number;
 }
 
-interface User {
-  id: string;
-  email: string;
-  name: string | null;
-  picture: string | null;
-  token: string;
-}
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
-
-// XP values for different difficulties
-const XP_VALUES = {
-  Easy: 10,
-  Medium: 25,
-  Hard: 50
-};
 
 export default function TasksPage() {
   const router = useRouter();

@@ -1,5 +1,6 @@
 "use client";
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 
@@ -82,7 +83,7 @@ export default function Navbar() {
             const data = await res.json();
             setCompletedTasks(data.total_completed || 0);
           }
-        } catch (e) {
+        } catch {
           setCompletedTasks(0);
         }
       }
@@ -92,13 +93,13 @@ export default function Navbar() {
 
   const handleGoogleLogin = () => {
     const popup = window.open(
-      "http://localhost:8001/auth/google/login",
+      `${API_URL}/auth/google/login`,
       "googleLogin",
       "width=500,height=600"
     );
   
     window.addEventListener("message", (event) => {
-      if (event.origin === "http://localhost:8001" && event.data.email) {
+      if (event.origin === `${API_URL}` && event.data.email) {
         localStorage.setItem("wikifacts_user", JSON.stringify(event.data));
         setUser(event.data);
         popup?.close();
@@ -108,7 +109,7 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     if (user?.token) {
-      await fetch('http://localhost:8001/auth/logout', { 
+      await fetch(`${API_URL}/auth/logout`, { 
         credentials: 'include',
         headers: {
           'Authorization': `Bearer ${user.token}`
@@ -206,7 +207,13 @@ export default function Navbar() {
                 <div className="flex items-center gap-2">
                   <Link href="/profile" className="focus:outline-none">
                     {user.picture && (
-                      <img src={user.picture} alt="Profile" className="w-8 h-8 rounded-full hover:ring-2 hover:ring-gray-200 transition-all" />
+                      <Image 
+                        src={user.picture} 
+                        alt="Profile" 
+                        width={32} 
+                        height={32} 
+                        className="rounded-full hover:ring-2 hover:ring-gray-200 transition-all" 
+                      />
                     )}
                   </Link>
                   <button
