@@ -1,15 +1,12 @@
-import type { Metadata } from 'next';
+"use client";
 import { Inter } from 'next/font/google';
 import './globals.css';
 import Navbar from '../components/Navbar';
 import { ConfettiProvider } from '@/contexts/ConfettiContext';
+import { ProgressProvider } from '@/contexts/ProgressContext';
+import { usePathname } from 'next/navigation';
 
 const inter = Inter({ subsets: ['latin'] });
-
-export const metadata: Metadata = {
-  title: 'WikiFix',
-  description: 'Verify claims on Wikipedia and contribute to improving online information.',
-};
 
 export default function RootLayout({
   children,
@@ -20,10 +17,25 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} bg-white min-h-screen`}>
         <ConfettiProvider>
-          <Navbar />
-          <main className="bg-white">{children}</main>
+          <ProgressProvider>
+            <NavbarWrapper>
+              {children}
+            </NavbarWrapper>
+          </ProgressProvider>
         </ConfettiProvider>
       </body>
     </html>
+  );
+}
+
+function NavbarWrapper({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isTaskPage = pathname?.startsWith('/tasks/') || pathname === '/tasks';
+
+  return (
+    <>
+      {!isTaskPage && <Navbar />}
+      <main className="bg-white">{children}</main>
+    </>
   );
 }

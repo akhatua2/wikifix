@@ -6,6 +6,8 @@ import Split from 'react-split';
 import TaskSkeleton from '@/components/TaskSkeleton';
 import dynamic from 'next/dynamic';
 import { useConfetti } from '@/contexts/ConfettiContext';
+import { useProgress } from '@/contexts/ProgressContext';
+import Image from 'next/image';
 
 const ReactConfetti = dynamic(() => import('react-confetti'), {
   ssr: false
@@ -30,6 +32,7 @@ export default function TaskDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { showConfetti } = useConfetti();
+  const { completedTasks, updateCompletedTasks } = useProgress();
   const taskId = params.taskId as string;
   const [task, setTask] = useState<TaskDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,6 +47,7 @@ export default function TaskDetailPage() {
     width: 0,
     height: 0
   });
+  const [user, setUser] = useState<any>(null);
 
   // Prevent body scrolling
   useEffect(() => {
@@ -51,6 +55,14 @@ export default function TaskDetailPage() {
     return () => {
       document.body.style.overflow = 'unset';
     };
+  }, []);
+
+  // Get user data
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem("wikifacts_user") || "null");
+    if (userData) {
+      setUser(userData);
+    }
   }, []);
 
   // Update window size for confetti
@@ -140,7 +152,7 @@ export default function TaskDetailPage() {
         numberOfPieces={500}
       />
 
-      // Update completed tasks count in navbar
+      // Update completed tasks count
       const completedTasksResponse = await fetch(`${API_URL}/api/users/${userData.id}/completed-tasks`, {
         headers: {
           'Authorization': `Bearer ${userData.token}`
@@ -148,10 +160,8 @@ export default function TaskDetailPage() {
       });
       if (completedTasksResponse.ok) {
         const data = await completedTasksResponse.json();
-        window.dispatchEvent(new StorageEvent('storage', {
-          key: 'wikifacts_completed_tasks',
-          newValue: JSON.stringify(data.total_completed || 0)
-        }));
+        const newCount = data.total_completed || 0;
+        updateCompletedTasks(newCount);
       }
 
       // Get a random task
@@ -223,6 +233,52 @@ export default function TaskDetailPage() {
 
   return (
     <div className="relative flex h-screen flex-col bg-white overflow-hidden">
+      {/* Progress Bar and Profile Section */}
+      <div className="bg-white border-[#f1f2f4] py-3 px-10">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="size-4">
+              <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g clipPath="url(#clip0_6_535)">
+                  <path
+                    fillRule="evenodd"
+                    clipRule="evenodd"
+                    d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z"
+                    fill="currentColor"
+                  ></path>
+                </g>
+                <defs>
+                  <clipPath id="clip0_6_535"><rect width="48" height="48" fill="white"></rect></clipPath>
+                </defs>
+              </svg>
+            </div>
+            <h2 className="text-[#121416] text-lg font-bold leading-tight tracking-[-0.015em]">WikiFix</h2>
+          </Link>
+          <div className="flex-1 mx-8 flex items-center gap-2">
+            <div className="flex-1 h-2 bg-[#f1f2f4] rounded-full overflow-hidden">
+              <div
+                className="h-2 bg-[#1ca152] rounded-full transition-all"
+                style={{ width: `${Math.min(completedTasks, 100)}%` }}
+              ></div>
+            </div>
+            <span className="text-xs font-bold text-[#1ca152] whitespace-nowrap">{completedTasks} tasks completed</span>
+          </div>
+          {user && (
+            <Link href="/profile" className="flex items-center gap-2">
+              {user.picture && (
+                <Image 
+                  src={user.picture} 
+                  alt="Profile" 
+                  width={32} 
+                  height={32} 
+                  className="rounded-full hover:ring-2 hover:ring-gray-200 transition-all" 
+                />
+              )}
+            </Link>
+          )}
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto w-full h-full py-5">
         <div className="w-full h-full">
           <Split
@@ -234,18 +290,9 @@ export default function TaskDetailPage() {
           >
             {/* Left Pane: Task Details (scrollable) */}
             <div className="flex flex-col h-full overflow-y-auto pr-4 bg-white">
-              {/* Navigation */}
-              <div className="flex justify-end mb-4">
-                <Link
-                  href="/tasks/all"
-                  className="text-[#60758a] hover:text-[#121416] text-xs"
-                >
-                  View All Tasks
-                </Link>
-              </div>
               {/* Combined Claim & Context Section */}
               <section
-                className="bg-white rounded-xl border border-[#f1f2f4] p-4 mb-4 cursor-pointer hover:bg-[#f1f2f4] transition-colors"
+                className="bg-white rounded-xl p-4 mb-4 cursor-pointer hover:bg-[#f1f2f4] transition-colors"
                 onClick={() => setWikiUrl('https://en.wikipedia.org/wiki/Isabel_Garc%C3%A9s#References')}
                 title="Show Wikipedia: Isabel Garcés in viewer"
               >
@@ -260,46 +307,12 @@ export default function TaskDetailPage() {
               </section>
               {/* Analysis Section */}
               <section
-                className="bg-white rounded-xl border border-[#f1f2f4] p-4 mb-4 cursor-pointer hover:bg-[#f1f2f4] transition-colors"
+                className="bg-white rounded-xl p-4 mb-4 cursor-pointer hover:bg-[#f1f2f4] transition-colors"
                 onClick={() => setWikiUrl('https://en.wikipedia.org/wiki/1937_Pittsburgh_Pirates_(NFL)_season#Week_2_(Sunday_September_19,_1937):_Brooklyn_Dodgers')}
                 title="Show Wikipedia: 1937 Pittsburgh Pirates NFL Season, Week 2 in viewer"
               >
                 <h2 className="text-[#121416] text-sm font-bold mb-3">Analysis</h2>
                 <p className="text-[#121416] text-xs">{task.analysis || 'No analysis provided'}</p>
-              </section>
-              {/* CTA Section */}
-              <section className="bg-white rounded-xl border border-[#f1f2f4] p-4 flex flex-col gap-3 mb-4">
-                <div className="flex gap-4 mb-2">
-                  <button 
-                    className={`flex-1 px-4 py-2 rounded-lg text-[#2d3436] text-xs font-bold transition-colors ${
-                      selectedOption === 'agree' 
-                        ? 'bg-[#1ca152] text-white hover:bg-[#178a41]' 
-                        : 'bg-[#a8e6cf] hover:bg-[#8ed3b6]'
-                    }`}
-                    onClick={() => setSelectedOption(selectedOption === 'agree' ? null : 'agree')}
-                  >
-                    Agree
-                  </button>
-                  <button 
-                    className={`flex-1 px-4 py-2 rounded-lg text-[#2d3436] text-xs font-bold transition-colors ${
-                      selectedOption === 'disagree' 
-                        ? 'bg-[#a52828] text-white hover:bg-[#7d1d1d]' 
-                        : 'bg-[#ffb3b3] hover:bg-[#ff9b9b]'
-                    }`}
-                    onClick={() => setSelectedOption(selectedOption === 'disagree' ? null : 'disagree')}
-                  >
-                    Disagree
-                  </button>
-                </div>
-                <label htmlFor="explanation" className="text-xs font-semibold text-[#60758a] mb-1">Explanation (optional)</label>
-                <textarea 
-                  id="explanation" 
-                  rows={3} 
-                  className="w-full rounded-lg border border-[#f1f2f4] p-2 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-[#dce8f3]" 
-                  placeholder="Provide your reasoning or feedback..."
-                  value={explanation}
-                  onChange={(e) => setExplanation(e.target.value)}
-                />
               </section>
               {/* References Section */}
               {task.references && task.references.length > 0 && (
@@ -316,21 +329,58 @@ export default function TaskDetailPage() {
                   </ul>
                 </section>
               )}
-              {/* Action Buttons */}
-              <div className="flex gap-3 justify-end">
-                <button 
-                  className={`px-4 py-2 rounded-lg text-xs font-medium transition-colors ${
-                    submitting 
-                      ? 'bg-[#dce8f3] text-[#60758a] cursor-not-allowed'
-                      : !selectedOption
-                        ? 'bg-[#dce8f3] text-[#60758a] cursor-not-allowed'
-                        : 'bg-[#1a73e8] text-white hover:bg-[#1557b0]'
-                  }`}
-                  onClick={handleSubmit}
-                  disabled={submitting || !selectedOption}
-                >
-                  {submitting ? 'Submitting...' : 'Submit Analysis'}
-                </button>
+              {/* Spacer to push CTA to bottom */}
+              <div className="flex-1" />
+              {/* CTA Section - Now sticky at bottom */}
+              <div className="sticky bottom-0 bg-white pt-4">
+                <section className="bg-white rounded-xl p-4 flex flex-col gap-3">
+                  <div className="flex gap-4 mb-2">
+                    <button 
+                      className={`flex-1 px-4 py-2 rounded-lg text-[#2d3436] text-xs font-bold transition-colors ${
+                        selectedOption === 'agree' 
+                          ? 'bg-[#1ca152] text-white hover:bg-[#178a41]' 
+                          : 'bg-[#a8e6cf] hover:bg-[#8ed3b6]'
+                      }`}
+                      onClick={() => setSelectedOption(selectedOption === 'agree' ? null : 'agree')}
+                    >
+                      Agree
+                    </button>
+                    <button 
+                      className={`flex-1 px-4 py-2 rounded-lg text-[#2d3436] text-xs font-bold transition-colors ${
+                        selectedOption === 'disagree' 
+                          ? 'bg-[#a52828] text-white hover:bg-[#7d1d1d]' 
+                          : 'bg-[#ffb3b3] hover:bg-[#ff9b9b]'
+                      }`}
+                      onClick={() => setSelectedOption(selectedOption === 'disagree' ? null : 'disagree')}
+                    >
+                      Disagree
+                    </button>
+                  </div>
+                  <label htmlFor="explanation" className="text-xs font-semibold text-[#60758a] mb-1">Explanation (optional)</label>
+                  <textarea 
+                    id="explanation" 
+                    rows={3} 
+                    className="w-full rounded-lg border border-[#f1f2f4] p-2 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-[#dce8f3]" 
+                    placeholder="Provide your reasoning or feedback..."
+                    value={explanation}
+                    onChange={(e) => setExplanation(e.target.value)}
+                  />
+                  <div className="flex gap-3 justify-end">
+                    <button 
+                      className={`px-4 py-2 rounded-lg text-xs font-medium transition-colors ${
+                        submitting 
+                          ? 'bg-[#dce8f3] text-[#60758a] cursor-not-allowed'
+                          : !selectedOption
+                            ? 'bg-[#dce8f3] text-[#60758a] cursor-not-allowed'
+                            : 'bg-[#1a73e8] text-white hover:bg-[#1557b0]'
+                      }`}
+                      onClick={handleSubmit}
+                      disabled={submitting || !selectedOption}
+                    >
+                      {submitting ? 'Submitting...' : 'Submit Analysis'}
+                    </button>
+                  </div>
+                </section>
               </div>
             </div>
             {/* Right Pane: Wikipedia Article (not scrollable) */}
