@@ -1,0 +1,132 @@
+"use client";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
+interface PlatformStats {
+  total_users: number;
+  total_completed_tasks: number;
+  total_points_awarded: number;
+  average_points_per_user: number;
+}
+
+export default function Hero() {
+  const [stats, setStats] = useState<PlatformStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem("wikifacts_user") || "null");
+    setIsLoggedIn(!!userData);
+  }, []);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const userData = JSON.parse(localStorage.getItem("wikifacts_user") || "null");
+        if (!userData) return;
+
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'}/api/stats/platform`, {
+          headers: {
+            'Authorization': `Bearer ${userData.token}`
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setStats(data);
+        }
+      } catch (error) {
+        console.error('Error fetching platform stats:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const handleStartContributing = () => {
+    if (isLoggedIn) {
+      // If logged in, go to a new task
+      router.push('/tasks');
+    } else {
+      // If not logged in, trigger Google login
+      const width = 500;
+      const height = 600;
+      const left = window.screenX + (window.outerWidth - width) / 2;
+      const top = window.screenY + (window.outerHeight - height) / 2;
+      
+      window.open(
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'}/auth/google/login`,
+        'Google Login',
+        `width=${width},height=${height},left=${left},top=${top}`
+      );
+
+      // Listen for the login success message
+      window.addEventListener('message', (event) => {
+        if (event.origin === process.env.NEXT_PUBLIC_API_URL || event.origin === 'http://localhost:8001') {
+          const userData = event.data;
+          if (userData && userData.token) {
+            localStorage.setItem('wikifacts_user', JSON.stringify(userData));
+            setIsLoggedIn(true);
+            router.push('/tasks/new');
+          }
+        }
+      });
+    }
+  };
+
+  // Calculate progress percentage (assuming 100 is the goal)
+  const progressPercentage = stats ? Math.min((stats.total_completed_tasks / 100) * 100, 100) : 0;
+
+  return (
+    <section className="flex flex-col lg:flex-row gap-8 items-start justify-between w-full max-w-7xl mx-auto py-12 px-10 pt-24">
+      {/* Left Side */}
+      <div className="flex-1 min-w-[320px] max-w-xl">
+        <div className="flex gap-3 mb-6">
+          <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-[#dce8f3] text-[#121416] text-xs font-semibold">
+            Community Project
+          </span>
+          <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-[#f1f2f4] text-[#121416] text-xs font-semibold">
+            Stanford Research
+          </span>
+        </div>
+        <h1 className="text-5xl font-bold text-[#121416] mb-6 leading-tight tracking-tight">Help Improve Wikipedia</h1>
+        <p className="text-lg text-[#121416] mb-8 font-normal">Stanford researchers found millions of inconsistencies in Wikipedia. Join our community to help fix them and make knowledge more accessible for everyone.</p>
+        <div className="rounded-2xl border border-[#f1f2f4] p-6 mb-6 bg-[#f1f2f4]">
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-bold text-[#121416]">Community Goal: Fix 100 Inconsistencies</span>
+            <span className="text-xs text-[#121416] font-medium">{Math.round(progressPercentage)}% complete</span>
+          </div>
+          <div className="text-xs text-[#121416] mb-1 flex justify-between">
+          </div>
+          <div className="w-full h-2 bg-white rounded-full overflow-hidden mb-2">
+            <div 
+              className="h-full bg-[#dce8f3] rounded-full transition-all duration-500" 
+              style={{ width: `${progressPercentage}%` }}
+            ></div>
+          </div>
+          <div className="flex items-center gap-2 text-xs mt-1 text-[#121416]">
+            {isLoading ? (
+              'Loading community stats...'
+            ) : (
+              <>
+                Every contribution matters! Join {stats?.total_users || 0}+ people improving Wikipedia.
+              </>
+            )}
+          </div>
+        </div>
+        <div className="flex gap-4">
+          <button 
+            onClick={handleStartContributing}
+            className="bg-[#121416] text-white font-bold rounded-xl px-7 py-3 text-base hover:bg-[#23272f] transition"
+          >
+            {isLoggedIn ? 'Start New Task' : 'Start Contributing'}
+          </button>
+          <button className="bg-white border border-[#121416] text-[#121416] font-semibold rounded-xl px-7 py-3 text-base hover:bg-[#f1f2f4] transition">Learn How It Works</button>
+        </div>
+      </div>
+      {/* Right Side */}
+    </section>
+  );
+}
