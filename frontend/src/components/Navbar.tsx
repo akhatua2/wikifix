@@ -99,7 +99,7 @@ export default function Navbar() {
     );
   
     window.addEventListener("message", (event) => {
-      if (event.origin === `${API_URL}` && event.data.email) {
+      if (event.data?.email) {
         localStorage.setItem("wikifacts_user", JSON.stringify(event.data));
         setUser(event.data);
         popup?.close();
