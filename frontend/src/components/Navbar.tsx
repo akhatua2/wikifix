@@ -108,17 +108,23 @@ export default function Navbar() {
   };
 
   const handleLogout = async () => {
-    if (user?.token) {
-      await fetch(`${API_URL}/auth/logout`, { 
-        credentials: 'include',
-        headers: {
-          'Authorization': `Bearer ${user.token}`
-        }
-      });
+    try {
+      if (user?.token) {
+        await fetch(`${API_URL}/auth/logout`, { 
+          credentials: 'include',
+          headers: {
+            'Authorization': `Bearer ${user.token}`
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Logout request failed:', error);
+    } finally {
+      // Always clear local state and storage regardless of server response
+      localStorage.removeItem("wikifacts_user");
+      setUser(null);
+      setDropdownOpen(false);
     }
-    localStorage.removeItem("wikifacts_user");
-    setUser(null);
-    setDropdownOpen(false);
   };
 
   const isActive = (path: string) => pathname === path;
