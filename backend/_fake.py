@@ -1,5 +1,4 @@
 from sqlalchemy.orm import Session
-from faker import Faker
 import uuid
 from datetime import datetime, UTC
 from db.tasks_ops import Task, TaskStatus, Base

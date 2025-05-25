@@ -1,0 +1,4 @@
+backend/.env
+backend/db/app.db
+backend/db/__pycache__
+backend/__pycache__
