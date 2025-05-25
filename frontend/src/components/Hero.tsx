@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ImpactSection from './ImpactSection';
+import Image from 'next/image';
 
 interface PlatformStats {
   total_users: number;
@@ -86,7 +87,7 @@ export default function Hero() {
         <div className="flex-1 min-w-[320px] max-w-xl">
           <div className="flex gap-3 mb-6">
             <span className="flex items-center gap-1">
-              <img 
+              <Image
                 src="/stanford_logo.png"
                 alt="Stanford Logo"
                 width={240}
@@ -100,7 +101,7 @@ export default function Hero() {
           </h1>
           <p className="text-lg text-[#121416] mb-8 font-normal">
             Join Stanford researchers in fixing millions of inconsistencies in Wikipedia. 
-            Your contributions will directly improve the world's largest knowledge base 
+            Your contributions will directly improve the world&apos;s largest knowledge base 
             and earn you rewards for your impact.
           </p>
           <div className="rounded-2xl border border-[#f1f2f4] p-6 mb-6 bg-[#f1f2f4]">
@@ -140,7 +141,7 @@ export default function Hero() {
         </div>
         {/* Right Side */}
         <div className="flex-1 min-w-[320px] ml-20 mt-20">
-          <img 
+          <Image 
             src="/hero.png"
             alt="Wikipedia Fact Checking"
             className="w-full h-auto rounded-2xl"

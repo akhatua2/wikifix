@@ -5,8 +5,6 @@ import dynamic from "next/dynamic";
 
 const ReactConfetti = dynamic(() => import("react-confetti"), { ssr: false });
 
-const steps = ["Topics", "Language", "Finish"];
-
 export default function FinishOnboarding() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);

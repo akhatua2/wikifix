@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from 'next/image';
 
 const topics = [
   { key: "science", name: "Science", icon: "/science.png" },
@@ -96,7 +97,7 @@ export default function TopicsOnboarding() {
             className={`bg-white rounded-xl shadow p-6 flex flex-col items-center border-2 transition hover:scale-105 focus:outline-none ${selected.includes(topic.key) ? 'border-[#1cb760] shadow-lg' : 'border-transparent'}`}
             onClick={() => toggleTopic(topic.key)}
           >
-            <img src={topic.icon} alt={topic.name} className="w-16 h-16 mb-2 rounded" />
+            <Image src={topic.icon} alt={topic.name} className="w-16 h-16 mb-2 rounded" />
             <span className="font-semibold text-lg mb-1 text-[#bdbdbd]">{topic.name}</span>
           </button>
         ))}

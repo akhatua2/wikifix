@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { TaskData, fetchRandomTask } from '@/types/task';
+import { fetchRandomTask } from '@/types/task';
 
 export default function TasksPage() {
   const router = useRouter();

@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from 'next/image';
 
 const languages = [
   { code: "es", name: "Spanish", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/59a90a2cedd48b751a8fd22014768fd7.svg" },
@@ -97,7 +98,7 @@ export default function LanguageOnboarding() {
             className={`bg-white rounded-xl shadow p-6 flex flex-col items-center border-2 transition hover:scale-105 focus:outline-none ${selected.includes(lang.code) ? 'border-[#1cb760] shadow-lg' : 'border-transparent'}`}
             onClick={() => toggleLanguage(lang.code)}
           >
-            <img src={lang.flag} alt={lang.name} className="w-16 h-16 mb-2 rounded" />
+            <Image src={lang.flag} alt={lang.name} className="w-16 h-16 mb-2 rounded" />
             <span className="font-semibold text-lg mb-1 text-[#bdbdbd]">{lang.name}</span>
           </button>
         ))}

@@ -246,7 +246,7 @@ export default function Navbar() {
                           className="rounded-full hover:ring-2 hover:ring-gray-200 transition-all" 
                         />
                         {userRank && [1,2,3].includes(userRank) && (
-                          <img
+                          <Image
                             src={`/cups/${userRank === 1 ? 'first' : userRank === 2 ? 'second' : 'third'}.png`}
                             alt={`Rank ${userRank}`}
                             className="absolute w-6 h-6 -bottom-2 -right-2 z-10"

@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 
 export default function AboutPage() {
   return (
@@ -19,7 +20,13 @@ export default function AboutPage() {
             Together, we create a smarter, more trustworthy Wikipedia—one fact at a time.
           </p>
           <div className="flex justify-center my-4">
-            <img src="/human_ai.png" alt="Human and AI Collaboration" className="max-w-xs w-full rounded-lg border border-[#f1f2f4] shadow" />
+            <Image 
+              src="/human_ai.png"
+              alt="Human and AI Collaboration"
+              width={320}
+              height={320}
+              className="max-w-xs w-full rounded-lg border border-[#f1f2f4] shadow"
+            />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
             <div className="text-center p-2 bg-[#f1f2f4] rounded-lg flex flex-col items-center border border-[#f1f2f4]">
@@ -46,7 +53,7 @@ export default function AboutPage() {
             </div>
             <div className="p-4 border border-[#f1f2f4] rounded-lg bg-[#f1f2f4] shadow-sm flex flex-col items-center">
               <h3 className="text-base font-semibold mb-1">2. Browse Topics</h3>
-              <p className="text-xs text-center">Pick topics you love or want to learn about—there's something for everyone!</p>
+              <p className="text-xs text-center">Pick topics you love or want to learn about&mdash;there&apos;s something for everyone!</p>
             </div>
             <div className="p-4 border border-[#f1f2f4] rounded-lg bg-[#f1f2f4] shadow-sm flex flex-col items-center">
               <h3 className="text-base font-semibold mb-1">3. Start Helping</h3>

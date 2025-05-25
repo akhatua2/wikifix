@@ -1,22 +1,11 @@
 import React from 'react';
 import { FaTrophy, FaWikipediaW, FaCheckCircle } from 'react-icons/fa';
+import Image from 'next/image';
 
 interface ImpactSectionProps {
   totalContributors: number;
   totalFixed: number;
 }
-
-// SVG icons for steps
-const StepIcons = [
-  // Step 1: Magnifying glass
-  <svg key="1" xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 mx-auto mb-3 text-[#1ca152]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="11" cy="11" r="7" strokeWidth="2"/><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35"/></svg>,
-  // Step 2: Checklist
-  <svg key="2" xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 mx-auto mb-3 text-[#1ca152]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="4" y="4" width="16" height="16" rx="2" strokeWidth="2"/><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4"/></svg>,
-  // Step 3: Wikipedia W (document with arrow)
-  <svg key="3" xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 mx-auto mb-3 text-[#1ca152]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="4" y="4" width="16" height="16" rx="2" strokeWidth="2"/><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M8 16l2-6 2 4 2-4 2 6"/></svg>,
-  // Step 4: Trophy
-  <svg key="4" xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 mx-auto mb-3 text-[#1ca152]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M8 21h8M12 17v4M17 5V3H7v2M5 5v2a7 7 0 0014 0V5"/></svg>
-];
 
 export default function ImpactSection({ totalContributors, totalFixed }: ImpactSectionProps) {
   return (
@@ -33,7 +22,7 @@ export default function ImpactSection({ totalContributors, totalFixed }: ImpactS
             <h3 className="text-xl font-bold mb-4 text-[#121416]">Real Impact on Wikipedia</h3>
             <p className="text-gray-700">
               Every inconsistency you verify gets reviewed by our team and submitted to Wikipedia for correction. 
-              Your contributions directly improve the world's largest knowledge base.
+              Your contributions directly improve the world&apos;s largest knowledge base.
             </p>
             <div className="mt-4 text-sm text-gray-600">
               <span className="font-semibold">{totalFixed.toLocaleString()}</span> inconsistencies fixed so far
@@ -79,24 +68,24 @@ export default function ImpactSection({ totalContributors, totalFixed }: ImpactS
             {/* Step 1: LLM flagging (find + agent) */}
             <div className="flex flex-col items-center text-center">
               <div className="flex justify-center gap-2 mb-4">
-                <img src="/process/find.png" alt="LLM Find" className="w-32 h-32 inline-block" />
-                <img src="/process/agent.png" alt="LLM Agent" className="w-32 h-32 inline-block" />
+                <Image src="/process/find.png" alt="LLM Find" className="w-32 h-32 inline-block" />
+                <Image src="/process/agent.png" alt="LLM Agent" className="w-32 h-32 inline-block" />
               </div>
               <p className="text-base text-[#121416] font-medium">Our system flags a possible inconsistency</p>
             </div>
             {/* Step 2: You check the flagged content */}
             <div className="flex flex-col items-center text-center">
-              <img src="/process/review.png" alt="You Review" className="w-32 h-32 mb-4" />
+              <Image src="/process/review.png" alt="You Review" className="w-32 h-32 mb-4" />
               <p className="text-base text-[#121416] font-medium">You check the flagged content</p>
             </div>
             {/* Step 3: You submit the fix and get acknowledged */}
             <div className="flex flex-col items-center text-center">
-              <img src="/process/submit.png" alt="Submit to Wikipedia" className="w-32 h-32 mb-4" />
+              <Image src="/process/submit.png" alt="Submit to Wikipedia" className="w-32 h-32 mb-4" />
               <p className="text-base text-[#121416] font-medium">We submit the fix to Wikipedia, acknowledging your contribution</p>
             </div>
             {/* Step 4: Rewards */}
             <div className="flex flex-col items-center text-center">
-              <img src="/process/reward.png" alt="Earn Rewards" className="w-32 h-32 mb-4" />
+              <Image src="/process/reward.png" alt="Earn Rewards" className="w-32 h-32 mb-4" />
               <p className="text-base text-[#121416] font-medium">You earn points and rewards</p>
             </div>
           </div>

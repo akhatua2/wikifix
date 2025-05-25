@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-
+import Image from 'next/image';
 interface LeaderboardUser {
   id: string;
   name: string;
@@ -35,7 +35,7 @@ export default function LeaderboardPage() {
           setLeaderboard(data);
         }
       } catch (error) {
-        // ignore
+        console.error('Failed to fetch leaderboard:', error);
       } finally {
         setIsLoading(false);
       }
@@ -66,7 +66,7 @@ export default function LeaderboardPage() {
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-medium text-gray-900">#{user.rank}</span>
                     {([1,2,3].includes(user.rank)) && (
-                      <img
+                      <Image
                         src={`/cups/${user.rank === 1 ? 'first' : user.rank === 2 ? 'second' : 'third'}.png`}
                         alt={`Rank ${user.rank}`}
                         className="w-6 h-6 mr-1"

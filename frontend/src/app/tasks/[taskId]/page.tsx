@@ -8,8 +8,16 @@ import dynamic from 'next/dynamic';
 import { useConfetti } from '@/contexts/ConfettiContext';
 import { useProgress } from '@/contexts/ProgressContext';
 import Image from 'next/image';
-import { TaskData, TaskSubmission, fetchTask, submitTask, fetchRandomTask } from '@/types/task';
+import { TaskData, fetchTask, submitTask, fetchRandomTask } from '@/types/task';
 import WikipediaEmbed from '@/components/WikipediaEmbed';
+
+interface User {
+  id: string;
+  email: string;
+  name: string | null;
+  picture: string | null;
+  token: string;
+}
 
 const ReactConfetti = dynamic(() => import('react-confetti'), {
   ssr: false
@@ -34,7 +42,7 @@ export default function TaskDetailPage() {
     width: 0,
     height: 0
   });
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const analysisRef = useRef<HTMLDivElement>(null);
 
   // Prevent body scrolling

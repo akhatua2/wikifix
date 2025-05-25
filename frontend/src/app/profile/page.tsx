@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+import Image from 'next/image';
+
 interface User {
   id: string;
   email: string;
@@ -29,20 +31,6 @@ interface CompletedTask {
   analysis: string;
   completed_at: string;
   points_earned: number;
-}
-
-interface LeaderboardUser {
-  id: string;
-  name: string;
-  points: number;
-  completed_tasks: number;
-  rank: number;
-}
-
-interface LeaderboardData {
-  total_users: number;
-  user_rank: number;
-  users: LeaderboardUser[];
 }
 
 interface PlatformStats {
@@ -123,7 +111,6 @@ export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [stats, setStats] = useState<UserStats | null>(null);
   const [completedTasks, setCompletedTasks] = useState<CompletedTask[]>([]);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardData | null>(null);
   const [platformStats, setPlatformStats] = useState<PlatformStats | null>(null);
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -167,17 +154,6 @@ export default function ProfilePage() {
         if (tasksRes.ok) {
           const tasksData = await tasksRes.json();
           setCompletedTasks(tasksData);
-        }
-
-        // Fetch leaderboard
-        const leaderboardRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'}/api/leaderboard`, {
-          headers: {
-            'Authorization': `Bearer ${user.token}`
-          }
-        });
-        if (leaderboardRes.ok) {
-          const leaderboardData = await leaderboardRes.json();
-          setLeaderboard(leaderboardData);
         }
 
         // Fetch platform stats
@@ -238,7 +214,7 @@ export default function ProfilePage() {
           setUserInterests(data);
         }
       } catch (error) {
-        // ignore
+        console.error('Error fetching user interests:', error);
       }
     };
     fetchInterests();
@@ -335,7 +311,7 @@ export default function ProfilePage() {
                   }}
                 />
                 {stats && [1,2,3].includes(stats.rank) && (
-                  <img
+                  <Image
                     src={`/cups/${stats.rank === 1 ? 'first' : stats.rank === 2 ? 'second' : 'third'}.png`}
                     alt={`Rank ${stats.rank}`}
                     className="absolute w-14 h-14 -bottom-3 -right-3 z-10"
@@ -367,7 +343,7 @@ export default function ProfilePage() {
                     const t = topicsList.find(t => t.key === topic);
                     return (
                       <span key={topic} className="flex items-center bg-[#e6f4ea] text-[#1cb760] px-3 py-1 rounded-full text-sm font-medium gap-1">
-                        {t?.icon && <img src={t.icon} alt={t.name} className="w-5 h-5 mr-1 rounded-full" />}
+                        {t?.icon && <Image src={t.icon} alt={t.name} className="w-5 h-5 mr-1 rounded-full" />}
                         {t?.name || topic}
                       </span>
                     );
@@ -377,7 +353,7 @@ export default function ProfilePage() {
                     const l = languagesList.find(l => l.code === lang);
                     return (
                       <span key={lang} className="flex items-center bg-[#e6eaf4] text-[#1c4db7] px-3 py-1 rounded-full text-sm font-medium gap-1">
-                        {l?.flag && <img src={l.flag} alt={l.name} className="w-5 h-5 mr-1 rounded-full" />}
+                        {l?.flag && <Image src={l.flag} alt={l.name} className="w-5 h-5 mr-1 rounded-full" />}
                         {l?.name || lang}
                       </span>
                     );
