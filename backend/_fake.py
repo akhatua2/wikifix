@@ -9,31 +9,37 @@ import json
 # Setup
 engine = create_engine("sqlite:///db/app.db")
 Base.metadata.create_all(engine)
-fake = Faker()
 
-# Insert synthetic data
-def populate_tasks(n=10):
+def clear_tasks():
     with Session(engine) as session:
-        for _ in range(n):
-            # Generate a random Wikipedia URL
-            wiki_url = f"https://en.wikipedia.org/wiki/{fake.word().capitalize()}"
-            
+        session.query(Task).delete()
+        session.commit()
+
+def populate_tasks_from_json():
+    # Read the JSON file
+    with open('inconsistent_claims.json', 'r') as f:
+        claims_data = json.load(f)
+    
+    with Session(engine) as session:
+        for claim_data in claims_data:
             task = Task(
                 id=str(uuid.uuid4()),
-                claim=fake.sentence(),
-                claim_text_span=fake.text(max_nb_chars=50),
-                claim_url=wiki_url,
-                context=fake.text(max_nb_chars=200),
-                report=fake.text(max_nb_chars=300),
-                report_urls=json.dumps([wiki_url]),  # Store as JSON string
+                claim=claim_data['claim'],
+                claim_text_span=claim_data['claim_text_span'],
+                claim_url=claim_data['claim_url'],
+                context=claim_data['context'],
+                report=claim_data['report'],
+                report_urls=claim_data['report_urls'],
                 status=TaskStatus.OPEN,
-                completed_by=None,  # Not completed initially
-                user_agrees=None,   # No user response yet
-                user_analysis=None, # No analysis yet
+                completed_by=None,
+                user_agrees=None,
+                user_analysis=None,
                 created_at=datetime.now(UTC),
                 updated_at=datetime.now(UTC)
             )
             session.add(task)
         session.commit()
 
-populate_tasks(20)  # populate 20 synthetic task entries
+# Clear existing tasks and populate with real data
+clear_tasks()
+populate_tasks_from_json()

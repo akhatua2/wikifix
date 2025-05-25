@@ -1,6 +1,6 @@
 "use client";
 import { useParams, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Split from 'react-split';
 import TaskSkeleton from '@/components/TaskSkeleton';
@@ -34,6 +34,7 @@ export default function TaskDetailPage() {
     height: 0
   });
   const [user, setUser] = useState<any>(null);
+  const analysisRef = useRef<HTMLDivElement>(null);
 
   // Prevent body scrolling
   useEffect(() => {
@@ -93,6 +94,24 @@ export default function TaskDetailPage() {
       loadTask();
     }
   }, [taskId]);
+
+  // Intercept link clicks in LLM Analysis section
+  useEffect(() => {
+    const ref = analysisRef.current;
+    if (!ref) return;
+    const handleLinkClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'A') {
+        e.preventDefault();
+        const href = (target as HTMLAnchorElement).getAttribute('href');
+        if (href) setWikiUrl(href);
+      }
+    };
+    ref.addEventListener('click', handleLinkClick);
+    return () => {
+      ref.removeEventListener('click', handleLinkClick);
+    };
+  }, [task]);
 
   const handleSubmit = async () => {
     if (!selectedOption) {
@@ -281,18 +300,27 @@ export default function TaskDetailPage() {
                     )}
                   </div>
                   <div>
-                    <p className="text-lg text-gray-800">{task.context || 'No context provided'}</p>
+                    {/* <p className="text-lg text-gray-800">{task.context || 'No context provided'}</p> */}
                   </div>
                 </section>
 
                 {/* Analysis Section */}
-                <section className="bg-[#f5f5f5] rounded-xl p-4 mb-4">
+                {/* <section className="bg-[#f5f5f5] rounded-xl p-4 mb-4">
                   <h2 className="text-lg font-bold text-gray-900 mb-3">LLM Analysis</h2>
                   <p className="text-base text-gray-800">{task.report || 'No analysis provided'}</p>
+                </section> */}
+
+                <section className="bg-[#f5f5f5] rounded-xl p-4 mb-4">
+                  <h2 className="text-lg font-bold text-gray-900 mb-3">LLM Analysis</h2>
+                  <div
+                    ref={analysisRef}
+                    className="text-base text-gray-800 llm-analysis-html"
+                    dangerouslySetInnerHTML={{ __html: task.report || 'No analysis provided' }}
+                  />
                 </section>
 
                 {/* Report URLs Section */}
-                {task.report_urls && (
+                {/* {task.report_urls && (
                   <section className="bg-[#f5f5f5] rounded-xl border border-[#f1f2f4] p-4 mb-4">
                     <h2 className="text-[#121416] text-sm font-bold mb-3">Reference Articles</h2>
                     <ul className="list-disc list-inside space-y-1">
@@ -309,7 +337,7 @@ export default function TaskDetailPage() {
                       ))}
                     </ul>
                   </section>
-                )}
+                )} */}
               </div>
               {/* CTA Section - always visible at bottom */}
               <div className="bg-[#f5f5f5] pt-4">
@@ -412,7 +440,17 @@ const styles = `
   .custom-gutter:hover {
     background-color: #9ca3af !important;
   }
+  .llm-analysis-html a {
+    color: #e67e22 !important; /* Example: orange color */
+    text-decoration: underline;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  .llm-analysis-html a:hover {
+    color: #d35400 !important; /* Darker orange on hover */
+  }
 `;
+
 
 // Add style tag to the document
 if (typeof document !== 'undefined') {
