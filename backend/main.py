@@ -333,9 +333,7 @@ async def get_leaderboard(
         }
 
 @app.get("/api/stats/platform")
-async def get_platform_stats(
-    current_user: User = Depends(get_current_user)
-):
+async def get_platform_stats():
     """Get overall platform statistics."""
     async with AsyncSessionLocal() as session:
         # Get total users

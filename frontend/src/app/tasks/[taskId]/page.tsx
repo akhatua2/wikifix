@@ -200,21 +200,65 @@ export default function TaskDetailPage() {
     }
   };
 
+  const handleSkip = async () => {
+    try {
+      const userData = JSON.parse(localStorage.getItem("wikifacts_user") || "null");
+      if (!userData?.token) {
+        setError('Please log in to skip tasks');
+        return;
+      }
+
+      // Get a random task
+      const randomResponse = await fetch(`${API_URL}/api/tasks/rand`, {
+        headers: {
+          'Authorization': `Bearer ${userData.token}`
+        }
+      });
+
+      if (!randomResponse.ok) {
+        if (randomResponse.status === 404) {
+          setError('No more tasks available. Great job!');
+          return;
+        }
+        throw new Error('Failed to get random task');
+      }
+
+      const randomTask = await randomResponse.json();
+      
+      if (!randomTask?.id) {
+        console.error('Invalid random task response:', randomTask);
+        setError('Failed to get next task. Please try again.');
+        return;
+      }
+
+      // Navigate to the new task
+      router.replace(`/tasks/${randomTask.id}`);
+    } catch (error) {
+      console.error('Error skipping task:', error);
+      setError('Failed to skip task. Please try again.');
+    }
+  };
+
   if (loading) {
     return (
-      <div className="relative flex h-screen flex-col bg-white overflow-hidden">
+      <div className="relative flex h-screen flex-col bg-[#f5f5f5] overflow-hidden">
         <div className="max-w-7xl mx-auto w-full h-full py-5">
           <Split
             className="flex h-full gap-2"
             sizes={[40, 60]}
             minSize={300}
             direction="horizontal"
-            gutterSize={8}
+            gutterSize={2}
+            gutterStyle={() => ({
+              backgroundColor: '#f1f2f4',
+              width: '2px',
+              cursor: 'col-resize'
+            })}
           >
-            <div className="flex flex-col h-full overflow-y-auto pr-4 bg-white">
+            <div className="flex flex-col h-full overflow-y-auto pr-4 bg-[#f5f5f5]">
               <TaskSkeleton />
             </div>
-            <div className="h-full w-full bg-white rounded-lg border border-[#f1f2f4] overflow-hidden">
+            <div className="h-full w-full bg-[#f5f5f5] rounded-lg border border-[#f1f2f4] overflow-hidden">
               <div className="animate-pulse h-full w-full bg-gray-200"></div>
             </div>
           </Split>
@@ -225,34 +269,19 @@ export default function TaskDetailPage() {
 
   if (error || !task) {
     return (
-      <div className="flex items-center justify-center h-screen overflow-hidden">
+      <div className="flex items-center justify-center h-screen overflow-hidden bg-[#f5f5f5]">
         <p className="text-[#a52828] text-lg">{error || 'Task not found'}</p>
       </div>
     );
   }
 
   return (
-    <div className="relative flex h-screen flex-col bg-white overflow-hidden">
+    <div className="relative flex h-screen flex-col bg-[#f5f5f5] overflow-hidden">
       {/* Progress Bar and Profile Section */}
-      <div className="bg-white border-[#f1f2f4] py-3 px-10">
+      <div className="bg-[#f5f5f5] border-[#f1f2f4] py-3 px-10">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="size-4">
-              <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <g clipPath="url(#clip0_6_535)">
-                  <path
-                    fillRule="evenodd"
-                    clipRule="evenodd"
-                    d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z"
-                    fill="currentColor"
-                  ></path>
-                </g>
-                <defs>
-                  <clipPath id="clip0_6_535"><rect width="48" height="48" fill="white"></rect></clipPath>
-                </defs>
-              </svg>
-            </div>
-            <h2 className="text-[#121416] text-lg font-bold leading-tight tracking-[-0.015em]">WikiFix</h2>
+            <h2 className="text-xl font-bold text-gray-900 leading-tight tracking-[-0.015em]">WikiFix</h2>
           </Link>
           <div className="flex-1 mx-8 flex items-center gap-2">
             <div className="flex-1 h-2 bg-[#f1f2f4] rounded-full overflow-hidden">
@@ -261,7 +290,7 @@ export default function TaskDetailPage() {
                 style={{ width: `${Math.min(completedTasks, 100)}%` }}
               ></div>
             </div>
-            <span className="text-xs font-bold text-[#1ca152] whitespace-nowrap">{completedTasks} tasks completed</span>
+            <span className="text-base font-semibold text-[#1ca152] whitespace-nowrap">{completedTasks} tasks completed</span>
           </div>
           {user && (
             <Link href="/profile" className="flex items-center gap-2">
@@ -286,37 +315,40 @@ export default function TaskDetailPage() {
             sizes={[40, 60]}
             minSize={300}
             direction="horizontal"
-            gutterSize={8}
+            gutterSize={2}
+            gutterStyle={() => ({
+              backgroundColor: '#f1f2f4',
+              width: '2px',
+              cursor: 'col-resize'
+            })}
           >
             {/* Left Pane: Task Details (scrollable) */}
-            <div className="flex flex-col h-full overflow-y-auto pr-4 bg-white">
+            <div className="flex flex-col h-full overflow-y-auto pr-4 bg-[#f5f5f5]">
               {/* Combined Claim & Context Section */}
               <section
-                className="bg-white rounded-xl p-4 mb-4 cursor-pointer hover:bg-[#f1f2f4] transition-colors"
+                className="bg-[#f5f5f5] rounded-xl p-4 mb-4 cursor-pointer hover:bg-[#f1f2f4] transition-colors"
                 onClick={() => setWikiUrl('https://en.wikipedia.org/wiki/Isabel_Garc%C3%A9s#References')}
                 title="Show Wikipedia: Isabel Garcés in viewer"
               >
                 <div className="mb-2">
-                  <span className="font-semibold text-sm text-[#60758a]">Claim:</span>
-                  <p className="text-[#121416] text-sm mb-2">{task.claim || 'No claim provided'}</p>
+                  <p className="text-2xl font-bold text-gray-900 mb-2">{task.claim || 'No claim provided'}</p>
                 </div>
                 <div>
-                  <span className="font-semibold text-sm text-[#60758a]">Context:</span>
-                  <p className="text-[#121416] text-sm">{task.context || 'No context provided'}</p>
+                  <p className="text-lg text-gray-800">{task.context || 'No context provided'}</p>
                 </div>
               </section>
               {/* Analysis Section */}
               <section
-                className="bg-white rounded-xl p-4 mb-4 cursor-pointer hover:bg-[#f1f2f4] transition-colors"
+                className="bg-[#f5f5f5] rounded-xl p-4 mb-4 cursor-pointer hover:bg-[#f1f2f4] transition-colors"
                 onClick={() => setWikiUrl('https://en.wikipedia.org/wiki/1937_Pittsburgh_Pirates_(NFL)_season#Week_2_(Sunday_September_19,_1937):_Brooklyn_Dodgers')}
                 title="Show Wikipedia: 1937 Pittsburgh Pirates NFL Season, Week 2 in viewer"
               >
-                <h2 className="text-[#121416] text-base font-bold mb-3">Analysis</h2>
-                <p className="text-[#121416] text-sm">{task.analysis || 'No analysis provided'}</p>
+                <h2 className="text-lg font-bold text-gray-900 mb-3">Analysis</h2>
+                <p className="text-base text-gray-800">{task.analysis || 'No analysis provided'}</p>
               </section>
               {/* References Section */}
               {task.references && task.references.length > 0 && (
-                <section className="bg-white rounded-xl border border-[#f1f2f4] p-4 mb-4">
+                <section className="bg-[#f5f5f5] rounded-xl border border-[#f1f2f4] p-4 mb-4">
                   <h2 className="text-[#121416] text-sm font-bold mb-3">References</h2>
                   <ul className="list-disc list-inside space-y-1">
                     {task.references.map((ref, index) => (
@@ -332,46 +364,51 @@ export default function TaskDetailPage() {
               {/* Spacer to push CTA to bottom */}
               <div className="flex-1" />
               {/* CTA Section - Now sticky at bottom */}
-              <div className="sticky bottom-0 bg-white pt-4">
-                <section className="bg-white rounded-xl p-4 flex flex-col gap-3">
+              <div className="sticky bottom-0 bg-[#f5f5f5] pt-4">
+                <section className="bg-[#f5f5f5] rounded-xl p-4 flex flex-col gap-3">
                   <div className="flex gap-4 mb-2">
                     <button 
-                      className={`flex-1 px-4 py-2 rounded-lg text-[#2d3436] text-xs font-bold transition-colors ${
+                      className={`flex-1 px-4 py-2 rounded-lg text-lg font-bold transition-colors ${
                         selectedOption === 'agree' 
-                          ? 'bg-[#1ca152] text-white hover:bg-[#178a41]' 
-                          : 'bg-[#a8e6cf] hover:bg-[#8ed3b6]'
+                          ? 'bg-[#1ca152] text-white hover:bg-[#178a41]'
+                          : 'bg-[#a8e6cf] text-gray-900 hover:bg-[#8ed3b6] text-gray-900'
                       }`}
                       onClick={() => setSelectedOption(selectedOption === 'agree' ? null : 'agree')}
                     >
                       Agree
                     </button>
                     <button 
-                      className={`flex-1 px-4 py-2 rounded-lg text-[#2d3436] text-xs font-bold transition-colors ${
+                      className={`flex-1 px-4 py-2 rounded-lg text-lg font-bold transition-colors ${
                         selectedOption === 'disagree' 
-                          ? 'bg-[#a52828] text-white hover:bg-[#7d1d1d]' 
-                          : 'bg-[#ffb3b3] hover:bg-[#ff9b9b]'
+                          ? 'bg-[#a52828] text-white hover:bg-[#7d1d1d]'
+                          : 'bg-[#ffb3b3] text-gray-900 hover:bg-[#ff9b9b] text-gray-900'
                       }`}
                       onClick={() => setSelectedOption(selectedOption === 'disagree' ? null : 'disagree')}
                     >
                       Disagree
                     </button>
                   </div>
-                  <label htmlFor="explanation" className="text-xs font-semibold text-[#60758a] mb-1">Explanation (optional)</label>
                   <textarea 
                     id="explanation" 
                     rows={3} 
-                    className="w-full rounded-lg border border-[#f1f2f4] p-2 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-[#dce8f3]" 
+                    className="w-full rounded-lg border border-[#f1f2f4] p-2 text-base text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-[#dce8f3]" 
                     placeholder="Provide your reasoning or feedback..."
                     value={explanation}
                     onChange={(e) => setExplanation(e.target.value)}
                   />
                   <div className="flex gap-3 justify-end">
                     <button 
-                      className={`px-4 py-2 rounded-lg text-xs font-medium transition-colors ${
+                      className="px-4 py-2 rounded-lg text-lg font-bold transition-colors bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      onClick={handleSkip}
+                    >
+                      Skip Task
+                    </button>
+                    <button 
+                      className={`px-4 py-2 rounded-lg text-lg font-bold transition-colors ${
                         submitting 
                           ? 'bg-[#dce8f3] text-[#60758a] cursor-not-allowed'
                           : !selectedOption
-                            ? 'bg-[#dce8f3] text-[#60758a] cursor-not-allowed'
+                            ? 'bg-[#dce8f3] text-gray-900 cursor-not-allowed'
                             : 'bg-[#1a73e8] text-white hover:bg-[#1557b0]'
                       }`}
                       onClick={handleSubmit}
@@ -409,4 +446,23 @@ export default function TaskDetailPage() {
       </div>
     </div>
   );
+}
+
+// Add styles at the end of the file
+const styles = `
+  .custom-gutter {
+    background-color: #e5e7eb !important;
+    width: 8px !important;
+    cursor: col-resize !important;
+  }
+  .custom-gutter:hover {
+    background-color: #9ca3af !important;
+  }
+`;
+
+// Add style tag to the document
+if (typeof document !== 'undefined') {
+  const styleTag = document.createElement('style');
+  styleTag.textContent = styles;
+  document.head.appendChild(styleTag);
 }

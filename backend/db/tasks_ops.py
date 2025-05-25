@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .db import AsyncSessionLocal, Base
 from db.user_ops import User
 import uuid
-from datetime import datetime
+from datetime import datetime, UTC
 from enum import Enum as PyEnum
 from sqlalchemy.types import Enum as SQLAlchemyEnum
 
@@ -17,14 +17,24 @@ class Task(Base):
     __table_args__ = {"extend_existing": True}
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    text = Column(String, nullable=False)
+    claim = Column(String, nullable=False)
+    claim_text_span = Column(String, nullable=True) 
+    claim_url = Column(String, nullable=True)
+
     context = Column(String, nullable=False, default="")
+    
+    report = Column(String, nullable=True)
+    report_urls = Column(String, nullable=True, default="[]")  # Store as JSON string
+    
     status = Column(SQLAlchemyEnum(TaskStatus), nullable=False, default=TaskStatus.OPEN)
     completed_by = Column(String(36), ForeignKey("users.id"), nullable=True)
-    user_agrees = Column(Boolean, nullable=True)  # True if user agrees with claim
-    user_analysis = Column(String, nullable=True)  # User's analysis
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    user_agrees = Column(Boolean, nullable=True)
+    user_analysis = Column(String, nullable=True)
+    
+    created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC))
+    updated_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
+    
 
 async def get_task(task_id: str) -> Optional[Task]:
     """Get a single task by its ID."""
@@ -92,7 +102,7 @@ async def complete_task(
         task.completed_by = user_id
         task.user_agrees = agrees_with_claim
         task.user_analysis = user_analysis
-        task.updated_at = datetime.utcnow()
+        task.updated_at = datetime.now(UTC)
         
         # Update user points
         points = 25 if not agrees_with_claim else 10  # More points for disagreeing

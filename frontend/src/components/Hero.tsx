@@ -23,14 +23,7 @@ export default function Hero() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const userData = JSON.parse(localStorage.getItem("wikifacts_user") || "null");
-        if (!userData) return;
-
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'}/api/stats/platform`, {
-          headers: {
-            'Authorization': `Bearer ${userData.token}`
-          }
-        });
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'}/api/stats/platform`);
         if (res.ok) {
           const data = await res.json();
           setStats(data);
@@ -84,25 +77,29 @@ export default function Hero() {
       {/* Left Side */}
       <div className="flex-1 min-w-[320px] max-w-xl">
         <div className="flex gap-3 mb-6">
-          <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-[#dce8f3] text-[#121416] text-xs font-semibold">
-            Community Project
-          </span>
-          <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-[#f1f2f4] text-[#121416] text-xs font-semibold">
-            Stanford Research
+          <span className="flex items-center gap-1">
+            <img 
+              src="/stanford_logo.png"
+              alt="Stanford Logo"
+              width={240}
+              height={240}
+              className="rounded-full"
+            />
           </span>
         </div>
         <h1 className="text-5xl font-bold text-[#121416] mb-6 leading-tight tracking-tight">Help Improve Wikipedia</h1>
         <p className="text-lg text-[#121416] mb-8 font-normal">Stanford researchers found millions of inconsistencies in Wikipedia. Join our community to help fix them and make knowledge more accessible for everyone.</p>
         <div className="rounded-2xl border border-[#f1f2f4] p-6 mb-6 bg-[#f1f2f4]">
           <div className="flex items-center justify-between mb-2">
-            <span className="font-bold text-[#121416]">Community Goal: Fix 100 Inconsistencies</span>
+            <span className="font-bold text-[#121416]">Goal: Fix 100 Inconsistencies</span>
             <span className="text-xs text-[#121416] font-medium">{Math.round(progressPercentage)}% complete</span>
           </div>
           <div className="text-xs text-[#121416] mb-1 flex justify-between">
+            <span>{stats?.total_completed_tasks || 0} tasks completed</span>
           </div>
           <div className="w-full h-2 bg-white rounded-full overflow-hidden mb-2">
             <div 
-              className="h-full bg-[#dce8f3] rounded-full transition-all duration-500" 
+              className="h-full bg-[#1ca152] rounded-full transition-all duration-500" 
               style={{ width: `${progressPercentage}%` }}
             ></div>
           </div>
@@ -127,6 +124,13 @@ export default function Hero() {
         </div>
       </div>
       {/* Right Side */}
+      <div className="flex-1 min-w-[320px] ml-20 mt-20">
+        <img 
+          src="/hero.png"
+          alt="Wikipedia Fact Checking"
+          className="w-full h-auto rounded-2xl"
+        />
+      </div>
     </section>
   );
 }
