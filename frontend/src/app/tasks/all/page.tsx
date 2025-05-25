@@ -1,24 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-
-interface TaskData {
-  id: string;
-  text: string;
-  topic: string;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
-  status: 'Open' | 'In Progress' | 'Completed';
-  xp?: number;
-}
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
-
-// XP values for different difficulties
-const XP_VALUES = {
-  Easy: 10,
-  Medium: 25,
-  Hard: 50
-};
+import { TaskData, fetchAllTasks, XP_VALUES } from '@/types/task';
 
 export default function AllTasksPage() {
   const router = useRouter();
@@ -27,7 +10,7 @@ export default function AllTasksPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchTasks = async () => {
+    const loadTasks = async () => {
       try {
         setLoading(true);
         const userData = JSON.parse(localStorage.getItem("wikifacts_user") || "null");
@@ -36,15 +19,7 @@ export default function AllTasksPage() {
           setLoading(false);
           return;
         }
-        const response = await fetch(`${API_URL}/api/tasks`, {
-          headers: {
-            'Authorization': `Bearer ${userData.token}`
-          }
-        });
-        if (!response.ok) {
-          throw new Error('Failed to fetch tasks');
-        }
-        const data = await response.json();
+        const data = await fetchAllTasks(userData.token);
         // Add XP values to tasks
         const tasksWithXP = data.map((task: TaskData) => ({
           ...task,
@@ -60,7 +35,7 @@ export default function AllTasksPage() {
       }
     };
 
-    fetchTasks();
+    loadTasks();
   }, []);
 
   const handleStartTask = (id: string) => {
@@ -115,14 +90,14 @@ export default function AllTasksPage() {
                     </span>
                   </div>
                   <span className={`px-2 py-1 rounded-lg text-sm font-medium ${
-                    task.status === 'Open' ? 'bg-[#dce8f3] text-[#121416]' :
-                    task.status === 'In Progress' ? 'bg-[#dce8f3] text-[#121416]' :
+                    task.status === 'OPEN' ? 'bg-[#dce8f3] text-[#121416]' :
+                    task.status === 'IN_PROGRESS' ? 'bg-[#dce8f3] text-[#121416]' :
                     'bg-[#1ca152] text-white'
                   }`}>
                     {task.status}
                   </span>
                 </div>
-                <p className="text-[#121416] text-base mb-3">{task.text}</p>
+                <p className="text-[#121416] text-base mb-3">{task.claim}</p>
                 <div className="flex justify-between items-center">
                   <span className="px-2 py-1 rounded-lg bg-[#f1f2f4] text-[#121416] text-sm">
                     {task.topic}

@@ -1,17 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-
-interface TaskData {
-  id: string;
-  text: string;
-  topic: string;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
-  status: 'Open' | 'In Progress' | 'Completed';
-  xp?: number;
-}
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+import { TaskData, fetchRandomTask } from '@/types/task';
 
 export default function TasksPage() {
   const router = useRouter();
@@ -19,7 +9,7 @@ export default function TasksPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchAndNavigateToRandomTask = async () => {
+    const loadAndNavigateToRandomTask = async () => {
       try {
         setLoading(true);
         const userData = JSON.parse(localStorage.getItem("wikifacts_user") || "null");
@@ -28,15 +18,7 @@ export default function TasksPage() {
           return;
         }
 
-        const response = await fetch(`${API_URL}/api/tasks/rand`, {
-          headers: {
-            'Authorization': `Bearer ${userData.token}`
-          }
-        });
-        if (!response.ok) {
-          throw new Error('Failed to fetch random task');
-        }
-        const task: TaskData = await response.json();
+        const task = await fetchRandomTask(userData.token);
         
         // Navigate to the random task
         router.push(`/tasks/${task.id}`);
@@ -48,7 +30,7 @@ export default function TasksPage() {
       }
     };
 
-    fetchAndNavigateToRandomTask();
+    loadAndNavigateToRandomTask();
   }, [router]);
 
   if (loading) {

@@ -13,11 +13,17 @@ export default function Hero() {
   const [stats, setStats] = useState<PlatformStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("wikifacts_user") || "null");
     setIsLoggedIn(!!userData);
+    if (userData?.name) {
+      // Extract first name from full name
+      const firstName = userData.name.split(' ')[0];
+      setUserName(firstName);
+    }
   }, []);
 
   useEffect(() => {
@@ -73,7 +79,7 @@ export default function Hero() {
   const progressPercentage = stats ? Math.min((stats.total_completed_tasks / 100) * 100, 100) : 0;
 
   return (
-    <section className="flex flex-col lg:flex-row gap-8 items-start justify-between w-full max-w-7xl mx-auto py-12 px-10 pt-24">
+    <section className="flex flex-col lg:flex-row gap-8 items-start justify-between w-full max-w-7xl mx-auto py-12 px-10 pt-10">
       {/* Left Side */}
       <div className="flex-1 min-w-[320px] max-w-xl">
         <div className="flex gap-3 mb-6">
@@ -87,7 +93,9 @@ export default function Hero() {
             />
           </span>
         </div>
-        <h1 className="text-5xl font-bold text-[#121416] mb-6 leading-tight tracking-tight">Help Improve Wikipedia</h1>
+        <h1 className="text-5xl font-bold text-[#121416] mb-6 leading-tight tracking-tight">
+          {userName ? `Hi ${userName}, Help Improve Wikipedia` : 'Help Improve Wikipedia'}
+        </h1>
         <p className="text-lg text-[#121416] mb-8 font-normal">Stanford researchers found millions of inconsistencies in Wikipedia. Join our community to help fix them and make knowledge more accessible for everyone.</p>
         <div className="rounded-2xl border border-[#f1f2f4] p-6 mb-6 bg-[#f1f2f4]">
           <div className="flex items-center justify-between mb-2">
