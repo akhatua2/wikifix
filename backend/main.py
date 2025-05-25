@@ -16,7 +16,7 @@ from db.tasks_ops import get_task, get_open_tasks, complete_task, get_random_ope
 from pydantic import BaseModel
 from sqlalchemy import select, func
 from db.db import AsyncSessionLocal
-from typing import List
+from typing import List, Optional
 
 load_dotenv()
 
@@ -84,9 +84,15 @@ async def test_debug():
     return {"message": "Debug endpoint working"}
 
 @app.get("/auth/google/login")
-async def login(request: Request):
+async def login(request: Request, referral_code: Optional[str] = None):
+    """Login with Google OAuth, optionally with a referral code."""
     redirect_uri = request.url_for('auth')
     print("Redirect URI:", redirect_uri)
+    
+    # Store referral code in session if provided
+    if referral_code:
+        request.session['referral_code'] = referral_code
+    
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
 @app.get("/auth/google/callback")
@@ -95,6 +101,12 @@ async def auth(request: Request):
     print("[SERVER] Google token:", token)
     userinfo = token["userinfo"]
     print("[SERVER] Google userinfo:", userinfo)
+    
+    # Get referral code from session if it exists
+    referral_code = request.session.get('referral_code')
+    if referral_code:
+        del request.session['referral_code']  # Clear it after use
+    
     # Fetch and encode image
     picture_url = userinfo.get("picture")
     picture_data = None
@@ -102,11 +114,13 @@ async def auth(request: Request):
         response = requests.get(picture_url)
         if response.status_code == 200:
             picture_data = f"data:image/jpeg;base64,{base64.b64encode(response.content).decode('utf-8')}"
-    # Get or create user in DB
+    
+    # Get or create user in DB with referral code if present
     db_user = await get_or_create_user(
         email=userinfo["email"],
         name=userinfo.get("name"),
         picture=picture_data or picture_url,
+        referral_code=referral_code
     )
     
     # Generate JWT token
@@ -118,7 +132,8 @@ async def auth(request: Request):
         "email": db_user.email,
         "name": db_user.name,
         "picture": db_user.picture,
-        "token": jwt_token
+        "token": jwt_token,
+        "referral_code": db_user.referral_code
     }
     html_content = f"""
     <script>
@@ -413,3 +428,57 @@ async def get_user_interests_api(
         )
     from db.user_ops import get_user_interests
     return await get_user_interests(user_id)
+
+@app.get("/api/users/{user_id}/referral")
+async def get_user_referral_info(
+    user_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get user's referral information."""
+    # Only allow users to get their own referral info
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to view other users' referral information"
+        )
+    
+    # Get backend URL from environment or default to localhost:8000
+    backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
+    
+    return {
+        "referral_code": current_user.referral_code,
+        "referral_count": current_user.referral_count,
+        "referral_link": f"{backend_url}/auth/google/login?referral_code={current_user.referral_code}"
+    }
+
+@app.get("/api/users/{user_id}/referrals")
+async def get_user_referrals(
+    user_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get list of users referred by this user."""
+    # Only allow users to get their own referrals
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to view other users' referrals"
+        )
+    
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(User)
+            .where(User.referred_by == user_id)
+            .order_by(User.updated_at.desc())
+        )
+        referred_users = result.scalars().all()
+        
+        return [
+            {
+                "id": user.id,
+                "name": user.name or user.email,
+                "email": user.email,
+                "joined_at": user.updated_at.isoformat(),
+                "points_earned": 50  # Points earned from this referral
+            }
+            for user in referred_users
+        ]

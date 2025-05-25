@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from typing import Optional, List
 import json
 
-from sqlalchemy import Column, String, Integer, select
+from sqlalchemy import Column, String, Integer, select, DateTime
 from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTable
 
 from .db import Base, AsyncSessionLocal, JWT_SECRET, JWT_ALGORITHM, ACCESS_TOKEN_EXPIRE_DAYS
@@ -22,6 +22,10 @@ class User(SQLAlchemyBaseUserTable[uuid.UUID], Base):
     completed_tasks = Column(Integer, nullable=False, default=0)
     topics = Column(String, nullable=True, default="[]")  # Store as JSON string
     languages = Column(String, nullable=True, default="[]")  # Store as JSON string
+    referral_code = Column(String(10), unique=True, nullable=True)  # Unique referral code
+    referred_by = Column(String(36), nullable=True)  # ID of user who referred this user
+    referral_count = Column(Integer, nullable=False, default=0)  # Number of successful referrals
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def generate_token(self) -> str:
         """Generate JWT token for user."""
@@ -73,6 +77,19 @@ class User(SQLAlchemyBaseUserTable[uuid.UUID], Base):
         """Get user's languages."""
         return json.loads(self.languages or "[]")
 
+    def generate_referral_code(self) -> str:
+        """Generate a unique referral code for the user."""
+        import secrets
+        import string
+        alphabet = string.ascii_letters + string.digits
+        code = ''.join(secrets.choice(alphabet) for _ in range(8))
+        self.referral_code = code
+        return code
+
+    def increment_referral_count(self) -> None:
+        """Increment the number of successful referrals."""
+        self.referral_count += 1
+
 
 async def get_user_by_id(user_id: str) -> Optional[User]:
     """Get user by ID."""
@@ -81,11 +98,19 @@ async def get_user_by_id(user_id: str) -> Optional[User]:
         return result.scalar_one_or_none()
 
 
+async def get_user_by_referral_code(referral_code: str) -> Optional[User]:
+    """Get user by referral code."""
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(User).where(User.referral_code == referral_code))
+        return result.scalar_one_or_none()
+
+
 async def get_or_create_user(
     email: str,
     name: Optional[str] = None,
     hashed_password: Optional[str] = None,
     picture: Optional[str] = None,
+    referral_code: Optional[str] = None,
 ) -> User:
     """Get existing user or create new one."""
     async with AsyncSessionLocal() as session:
@@ -101,6 +126,18 @@ async def get_or_create_user(
                 name=name,
                 picture=picture
             )
+            
+            # Generate referral code for new user
+            user.generate_referral_code()
+            
+            # If user was referred, set referred_by and give points to referrer
+            if referral_code:
+                referrer = await get_user_by_referral_code(referral_code)
+                if referrer:
+                    user.referred_by = referrer.id
+                    referrer.add_points(50)  # Give 50 points to referrer
+                    referrer.increment_referral_count()
+            
             session.add(user)
             await session.commit()
             await session.refresh(user)

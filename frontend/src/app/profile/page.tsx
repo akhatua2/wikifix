@@ -52,6 +52,20 @@ interface PlatformStats {
   average_points_per_user: number;
 }
 
+interface ReferralInfo {
+  referral_code: string;
+  referral_count: number;
+  referral_link: string;
+}
+
+interface ReferredUser {
+  id: string;
+  name: string;
+  email: string;
+  joined_at: string;
+  points_earned: number;
+}
+
 const topicsList = [
   { key: "science", name: "Science", icon: "/science.png" },
   { key: "history", name: "History", icon: "/history.png" },
@@ -114,6 +128,8 @@ export default function ProfilePage() {
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userInterests, setUserInterests] = useState<{ topics: string[]; languages: string[] }>({ topics: [], languages: [] });
+  const [referralInfo, setReferralInfo] = useState<ReferralInfo | null>(null);
+  const [referredUsers, setReferredUsers] = useState<ReferredUser[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -174,6 +190,28 @@ export default function ProfilePage() {
           const platformStatsData = await platformStatsRes.json();
           setPlatformStats(platformStatsData);
         }
+
+        // Fetch referral info
+        const referralRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'}/api/users/${user.id}/referral`, {
+          headers: {
+            'Authorization': `Bearer ${user.token}`
+          }
+        });
+        if (referralRes.ok) {
+          const referralData = await referralRes.json();
+          setReferralInfo(referralData);
+        }
+
+        // Fetch referred users
+        const referredUsersRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'}/api/users/${user.id}/referrals`, {
+          headers: {
+            'Authorization': `Bearer ${user.token}`
+          }
+        });
+        if (referredUsersRes.ok) {
+          const referredUsersData = await referredUsersRes.json();
+          setReferredUsers(referredUsersData);
+        }
       } catch (error) {
         console.error('Error fetching user data:', error);
       } finally {
@@ -205,6 +243,76 @@ export default function ProfilePage() {
     };
     fetchInterests();
   }, [user]);
+
+  const ReferralSection = () => {
+    const [copied, setCopied] = useState(false);
+
+    const copyToClipboard = async () => {
+      if (referralInfo?.referral_link) {
+        await navigator.clipboard.writeText(referralInfo.referral_link);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+    };
+
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <h2 className="text-xl font-semibold mb-4">Invite Friends</h2>
+        <div className="space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
+              <p className="text-sm text-gray-600 mb-2">Your Referral Link</p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={referralInfo?.referral_link || ''}
+                  readOnly
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-50"
+                />
+                <button
+                  onClick={copyToClipboard}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  {copied ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-600">Total Referrals</p>
+              <p className="text-2xl font-semibold">{referralInfo?.referral_count || 0}</p>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-600">Points Earned</p>
+              <p className="text-2xl font-semibold">{referredUsers.length * 50}</p>
+            </div>
+          </div>
+
+          {referredUsers.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-3">Your Referrals</h3>
+              <div className="space-y-3">
+                {referredUsers.map((user) => (
+                  <div key={user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-medium">{user.name || user.email}</p>
+                      <p className="text-sm text-gray-600">Joined {new Date(user.joined_at).toLocaleDateString()}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600">Points Earned</p>
+                      <p className="font-medium text-green-600">+{user.points_earned}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   if (!mounted || !user) {
     return null;
@@ -279,6 +387,8 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* Referral Section */}
+          <ReferralSection />
 
           {/* Verified Claims Section */}
           <div className="px-4 py-3">
