@@ -31,10 +31,11 @@ export default function RootLayout({
 function NavbarWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isTaskPage = pathname?.startsWith('/tasks/') || pathname === '/tasks';
+  const isOnboardingPage = pathname?.startsWith('/onboarding/');
 
   return (
     <>
-      {!isTaskPage && <Navbar />}
+      {!isTaskPage && !isOnboardingPage && <Navbar />}
       <main className="bg-white">{children}</main>
     </>
   );

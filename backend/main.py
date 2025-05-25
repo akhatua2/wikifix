@@ -11,11 +11,12 @@ from starlette.config import Config
 from starlette.middleware.sessions import SessionMiddleware
 from dotenv import load_dotenv
 from db.db import init_models
-from db.user_ops import User, get_user_by_id, get_or_create_user, get_user_completed_tasks
+from db.user_ops import User, get_user_by_id, get_or_create_user, get_user_completed_tasks, update_user_topics, update_user_languages
 from db.tasks_ops import get_task, get_open_tasks, complete_task, get_random_open_task
 from pydantic import BaseModel
 from sqlalchemy import select, func
 from db.db import AsyncSessionLocal
+from typing import List
 
 load_dotenv()
 
@@ -366,3 +367,49 @@ async def get_platform_stats():
             "total_points_awarded": total_points_awarded,
             "average_points_per_user": round(avg_points, 2)
         }
+
+class UserInterests(BaseModel):
+    topics: List[str]
+    languages: List[str]
+
+@app.post("/api/users/{user_id}/interests")
+async def save_user_interests(
+    user_id: str,
+    interests: UserInterests,
+    current_user: User = Depends(get_current_user)
+):
+    """Save user's topics and languages."""
+    # Only allow users to update their own interests
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to update other users' interests"
+        )
+    
+    # Update topics and languages
+    topics_success = await update_user_topics(user_id, interests.topics)
+    languages_success = await update_user_languages(user_id, interests.languages)
+    
+    if not (topics_success and languages_success):
+        raise HTTPException(
+            status_code=400,
+            detail="Failed to save user interests"
+        )
+    
+    return {"success": True}
+
+
+@app.get("/api/users/{user_id}/interests")
+async def get_user_interests_api(
+    user_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get user's topics and languages."""
+    # Only allow users to get their own interests
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to view other users' interests"
+        )
+    from db.user_ops import get_user_interests
+    return await get_user_interests(user_id)

@@ -2,6 +2,7 @@ import uuid
 import jwt
 from datetime import datetime, timedelta
 from typing import Optional, List
+import json
 
 from sqlalchemy import Column, String, Integer, select
 from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTable
@@ -19,6 +20,8 @@ class User(SQLAlchemyBaseUserTable[uuid.UUID], Base):
     picture = Column(String, nullable=True)
     points = Column(Integer, nullable=False, default=0)
     completed_tasks = Column(Integer, nullable=False, default=0)
+    topics = Column(String, nullable=True, default="[]")  # Store as JSON string
+    languages = Column(String, nullable=True, default="[]")  # Store as JSON string
 
     def generate_token(self) -> str:
         """Generate JWT token for user."""
@@ -53,6 +56,22 @@ class User(SQLAlchemyBaseUserTable[uuid.UUID], Base):
             select(Task).where(Task.completed_by == self.id)
         )
         return list(result.scalars().all())
+
+    def set_topics(self, topics: List[str]) -> None:
+        """Set user's topics."""
+        self.topics = json.dumps(topics)
+
+    def get_topics(self) -> List[str]:
+        """Get user's topics."""
+        return json.loads(self.topics or "[]")
+
+    def set_languages(self, languages: List[str]) -> None:
+        """Set user's languages."""
+        self.languages = json.dumps(languages)
+
+    def get_languages(self) -> List[str]:
+        """Get user's languages."""
+        return json.loads(self.languages or "[]")
 
 
 async def get_user_by_id(user_id: str) -> Optional[User]:
@@ -99,3 +118,40 @@ async def get_user_completed_tasks(user_id: str) -> List:
             .order_by(Task.updated_at.desc())
         )
         return list(result.scalars().all())
+
+
+async def update_user_topics(user_id: str, topics: List[str]) -> bool:
+    """Update user's topics."""
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(User).where(User.id == user_id))
+        user = result.scalar_one_or_none()
+        if not user:
+            return False
+        user.set_topics(topics)
+        await session.commit()
+        return True
+
+
+async def update_user_languages(user_id: str, languages: List[str]) -> bool:
+    """Update user's languages."""
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(User).where(User.id == user_id))
+        user = result.scalar_one_or_none()
+        if not user:
+            return False
+        user.set_languages(languages)
+        await session.commit()
+        return True
+
+
+async def get_user_interests(user_id: str) -> dict:
+    """Get user's topics and languages."""
+    async with AsyncSessionLocal() as session:
+        user = await get_user_by_id(user_id)
+        if not user:
+            return {"topics": [], "languages": []}
+        
+        return {
+            "topics": user.get_topics(),
+            "languages": user.get_languages()
+        }

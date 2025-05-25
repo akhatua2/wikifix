@@ -52,6 +52,59 @@ interface PlatformStats {
   average_points_per_user: number;
 }
 
+const topicsList = [
+  { key: "science", name: "Science", icon: "/science.png" },
+  { key: "history", name: "History", icon: "/history.png" },
+  { key: "sports", name: "Sports", icon: "/sports.png" },
+  { key: "technology", name: "Technology", icon: "/technology.png" },
+  { key: "art", name: "Art", icon: "/art.png" },
+  { key: "music", name: "Music", icon: "/music.png" },
+  { key: "literature", name: "Literature", icon: "/literature.png" },
+  { key: "geography", name: "Geography", icon: "/geography.png" },
+];
+const languagesList = [
+  { code: "es", name: "Spanish", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/59a90a2cedd48b751a8fd22014768fd7.svg" },
+  { code: "fr", name: "French", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/482fda142ee4abd728ebf4ccce5d3307.svg" },
+  { code: "ja", name: "Japanese", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/edea4fa18ff3e7d8c0282de3f102aaed.svg" },
+  { code: "de", name: "German", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/c71db846ffab7e0a74bc6971e34ad82e.svg" },
+  { code: "ko", name: "Korean", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/ec5835ac9f465ff3dad4b1b8725d4314.svg" },
+  { code: "it", name: "Italian", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/635a09df9323279d39934a991edd4510.svg" },
+  { code: "zh", name: "Chinese", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/9905aa3a86fcb9e351b0b3bfaf04d8b9.svg" },
+  { code: "hi", name: "Hindi", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/73837fa39dbf1bcc4c95a17a58ed0ffb.svg" },
+  { code: "ru", name: "Russian", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/eadd7804652170c33814a89482f1f353.svg" },
+  { code: "ar", name: "Arabic", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/9ab6930a263c981b57f9d578ac97cae7.svg" },
+  { code: "pt", name: "Portuguese", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/27d253ae1272917fc9f4a79459aacd53.svg" },
+  { code: "tr", name: "Turkish", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/bc80a9518cd6d5af6ae14e8b22b8a1f4.svg" },
+  { code: "en", name: "English", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/bbe17e16aa4a106032d8e3521eaed13e.svg" },
+  { code: "nl", name: "Dutch", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/de945d789e249dcd74333a6996472ef8.svg" },
+  { code: "el", name: "Greek", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/8db373482261397a3159d3f370eed2f3.svg" },
+  { code: "vi", name: "Vietnamese", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/2b077d42185bc45d4896ed55f15c4fea.svg" },
+  { code: "pl", name: "Polish", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/f095084e6ec400e631d62c3d95fefaa2.svg" },
+  { code: "sv", name: "Swedish", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/f578430c9b7ab617c107893afbb501c0.svg" },
+  { code: "la", name: "Latin", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/f7cee6cc09270371b097129faf792c2a.svg" },
+  { code: "ga", name: "Irish", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/ef0bfb96037b127473bd7bcbfde1a6ed.svg" },
+  { code: "no", name: "Norwegian", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/90b37d97edc66e830dc2286279548f67.svg" },
+  { code: "he", name: "Hebrew", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/f818f545a703ddaa046ca8786e781742.svg" },
+  { code: "val", name: "High Valyrian", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/2880099b038848abbfd11104097953ad.svg" },
+  { code: "uk", name: "Ukrainian", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/7c6e12bc57527843082f7f5bb77c9862.svg" },
+  { code: "id", name: "Indonesian", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/339c0413e542f19b234971d7740447e7.svg" },
+  { code: "ro", name: "Romanian", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/357e13bb10cf86fc06552d563957e2e6.svg" },
+  { code: "fi", name: "Finnish", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/b4d0e4f6451f504e1441eb93efdbea5e.svg" },
+  { code: "da", name: "Danish", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/6af84a7cb8e99ea8a567c2b9c55b9926.svg" },
+  { code: "cs", name: "Czech", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/828bf0fea457d3beaaab3d6c0bfcc975.svg" },
+  { code: "zu", name: "Zulu", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/112e1531d0ac198a9424bd1b0a7166e6.svg" },
+  { code: "haw", name: "Hawaiian", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/312e21f793c555787d01a45e20ee8191.svg" },
+  { code: "cy", name: "Welsh", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/f773f1b240623072e48843ecdf90d756.svg" },
+  { code: "sw", name: "Swahili", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/335311988405b4354e1b6ae9037c02db.svg" },
+  { code: "hu", name: "Hungarian", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/2ed8d0a73eab3c9cba0290e2b459684a.svg" },
+  { code: "gd", name: "Scottish Gaelic", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/09eba3135efe8fe93a4662dba813b921.svg" },
+  { code: "ht", name: "Haitian Creole", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/8cb302b44c183c1a8ec3b90caf90d922.svg" },
+  { code: "eo", name: "Esperanto", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/6de7e4731b2a82a6458268e1a3d67ce4.svg" },
+  { code: "tlh", name: "Klingon", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/76d654213a8282b0ebc25b4f535ee003.svg" },
+  { code: "nv", name: "Navajo", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/bbc8ad0cfe2596d5193376ebdc3e969c.svg" },
+  { code: "yi", name: "Yiddish", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/55bad151fa6a8d9e2376fc9697c671c8.svg" },
+];
+
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [stats, setStats] = useState<UserStats | null>(null);
@@ -60,6 +113,7 @@ export default function ProfilePage() {
   const [platformStats, setPlatformStats] = useState<PlatformStats | null>(null);
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [userInterests, setUserInterests] = useState<{ topics: string[]; languages: string[] }>({ topics: [], languages: [] });
   const router = useRouter();
 
   useEffect(() => {
@@ -132,6 +186,26 @@ export default function ProfilePage() {
     }
   }, [user]);
 
+  useEffect(() => {
+    const fetchInterests = async () => {
+      if (!user) return;
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'}/api/users/${user.id}/interests`, {
+          headers: {
+            'Authorization': `Bearer ${user.token}`
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setUserInterests(data);
+        }
+      } catch (error) {
+        // ignore
+      }
+    };
+    fetchInterests();
+  }, [user]);
+
   if (!mounted || !user) {
     return null;
   }
@@ -142,8 +216,9 @@ export default function ProfilePage() {
         <div className="flex flex-col max-w-[960px] flex-1">
           {/* Profile Header */}
           <div className="flex p-4">
-            <div className="flex w-full flex-col gap-4 items-center">
-              <div className="flex gap-4 flex-col items-center">
+            <div className="flex w-full gap-8">
+              {/* Profile Picture with Cup Overlay */}
+              <div className="relative min-h-32 w-32 flex-shrink-0">
                 <div
                   className="bg-center bg-no-repeat aspect-square bg-cover rounded-full min-h-32 w-32"
                   style={{
@@ -151,36 +226,59 @@ export default function ProfilePage() {
                     backgroundColor: user.picture ? 'transparent' : '#f1f2f4'
                   }}
                 />
-                <div className="flex flex-col items-center justify-center">
-                  <p className="text-[22px] font-bold leading-tight tracking-[-0.015em] text-center text-gray-900">
+                {stats && [1,2,3].includes(stats.rank) && (
+                  <img
+                    src={`/cups/${stats.rank === 1 ? 'first' : stats.rank === 2 ? 'second' : 'third'}.png`}
+                    alt={`Rank ${stats.rank}`}
+                    className="absolute w-14 h-14 -bottom-3 -right-3 z-10"
+                  />
+                )}
+              </div>
+              
+              {/* User Info and Interests */}
+              <div className="flex flex-col gap-4 flex-1">
+                <div className="flex flex-col">
+                  <p className="text-[22px] font-bold leading-tight tracking-[-0.015em] text-gray-900">
                     {user.name || user.email}
                   </p>
                   {stats && (
                     <>
-                      <p className="text-base font-normal leading-normal text-center text-gray-600">
-                        Verified Claims: {stats.completed_tasks} | Points: {stats.points} | Badges: {stats.badges}
+                      <p className="text-base font-normal leading-normal text-gray-600">
+                        Verified Claims: {stats.completed_tasks} | Points: {stats.points}
                       </p>
-                      <p className="text-base font-normal leading-normal text-center text-gray-600">
+                      <p className="text-base font-normal leading-normal text-gray-600">
                         Rank: {stats.rank}
                       </p>
                     </>
                   )}
                 </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {/* Topics */}
+                  {userInterests.topics.map((topic) => {
+                    const t = topicsList.find(t => t.key === topic);
+                    return (
+                      <span key={topic} className="flex items-center bg-[#e6f4ea] text-[#1cb760] px-3 py-1 rounded-full text-sm font-medium gap-1">
+                        {t?.icon && <img src={t.icon} alt={t.name} className="w-5 h-5 mr-1 rounded-full" />}
+                        {t?.name || topic}
+                      </span>
+                    );
+                  })}
+                  {/* Languages */}
+                  {userInterests.languages.map((lang) => {
+                    const l = languagesList.find(l => l.code === lang);
+                    return (
+                      <span key={lang} className="flex items-center bg-[#e6eaf4] text-[#1c4db7] px-3 py-1 rounded-full text-sm font-medium gap-1">
+                        {l?.flag && <img src={l.flag} alt={l.name} className="w-5 h-5 mr-1 rounded-full" />}
+                        {l?.name || lang}
+                      </span>
+                    );
+                  })}
+                </div>
               </div>
-              <button className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-gray-100 text-gray-900 text-sm font-bold leading-normal tracking-[0.015em] w-full max-w-[480px] hover:bg-gray-200 transition-colors">
-                <span className="truncate">Edit Profile</span>
-              </button>
             </div>
           </div>
 
-          {/* Tabs */}
-          <div className="pb-3">
-            <div className="flex border-b border-gray-200 px-4">
-              <a className="flex flex-col items-center justify-center border-b-[3px] border-b-gray-900 text-gray-900 pb-[13px] pt-4" href="#">
-                <p className="text-sm font-bold leading-normal tracking-[0.015em]">Contributions</p>
-              </a>
-            </div>
-          </div>
 
           {/* Verified Claims Section */}
           <div className="px-4 py-3">
@@ -188,7 +286,7 @@ export default function ProfilePage() {
               <table className="flex-1">
                 <thead>
                   <tr className="bg-white">
-                    <th className="px-3 py-1.5 text-left text-gray-900 w-[400px] text-sm font-medium leading-normal">Claim</th>
+                    <th className="px-3 py-1.5 text-left text-gray-900 w-[400px] text-sm font-medium leading-normal">Task</th>
                     <th className="px-3 py-1.5 text-right text-gray-900 w-32 text-sm font-medium leading-normal">Status</th>
                     <th className="px-3 py-1.5 text-right text-gray-900 w-32 text-sm font-medium leading-normal">Date</th>
                   </tr>
@@ -240,11 +338,11 @@ export default function ProfilePage() {
           </div>
 
           {/* View All Button */}
-          <div className="flex px-4 py-3 justify-end">
+          {/* <div className="flex px-4 py-3 justify-end">
             <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-gray-100 text-gray-900 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-gray-200 transition-colors">
               <span className="truncate">View All Contributions</span>
             </button>
-          </div>
+          </div> */}
 
           {/* Platform Stats Section */}
           <div className="mt-8 px-4">
@@ -278,64 +376,6 @@ export default function ProfilePage() {
               )}
             </div>
           </div>
-
-          {/* Leaderboard Section */}
-          <div className="mt-8 px-4">
-            <h3 className="text-lg font-bold leading-tight tracking-[-0.015em] pb-2 text-gray-900">Leaderboard</h3>
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, index) => (
-                  <div key={index} className="animate-pulse p-4 border-t border-gray-200 first:border-t-0">
-                    <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                  </div>
-                ))
-              ) : leaderboard && (
-                <>
-                  <div className="p-4 border-b border-gray-200 bg-gray-50">
-                    <p className="text-sm text-gray-600">
-                      Your Rank: <span className="font-bold text-gray-900">{leaderboard.user_rank}</span> of {leaderboard.total_users} users
-                    </p>
-                  </div>
-                  {leaderboard.users.map((user) => (
-                    <div key={user.id} className="p-4 border-b border-gray-200 last:border-b-0 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium text-gray-900">#{user.rank}</span>
-                        <span className="text-sm text-gray-900">{user.name}</span>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span className="text-sm text-gray-600">{user.completed_tasks} tasks</span>
-                        <span className="text-sm font-medium text-gray-900">{user.points} pts</span>
-                      </div>
-                    </div>
-                  ))}
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Badges Section */}
-          <h3 className="text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4 text-gray-900">Badges</h3>
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(158px,1fr))] gap-3 p-4">
-            {isLoading ? (
-              // Skeleton loading for badges
-              Array.from({ length: 4 }).map((_, index) => (
-                <div key={index} className="animate-pulse">
-                  <div className="h-32 bg-gray-200 rounded-lg"></div>
-                </div>
-              ))
-            ) : stats?.badges === 0 ? (
-              <div className="col-span-full text-center text-gray-600 py-4">
-                No badges yet. Keep contributing to earn badges!
-              </div>
-            ) : (
-              <div className="col-span-full text-center text-gray-600 py-4">
-                Loading your badges...
-              </div>
-            )}
-          </div>
-          <p className="text-gray-600 text-sm font-normal leading-normal pb-3 pt-1 px-4 text-center underline cursor-pointer hover:text-gray-900">
-            View full leaderboard
-          </p>
         </div>
       </div>
     </div>
