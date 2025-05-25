@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import ImpactSection from './ImpactSection';
 
 interface PlatformStats {
   total_users: number;
@@ -79,66 +80,79 @@ export default function Hero() {
   const progressPercentage = stats ? Math.min((stats.total_completed_tasks / 100) * 100, 100) : 0;
 
   return (
-    <section className="flex flex-col lg:flex-row gap-8 items-start justify-between w-full max-w-7xl mx-auto py-12 px-10 pt-10">
-      {/* Left Side */}
-      <div className="flex-1 min-w-[320px] max-w-xl">
-        <div className="flex gap-3 mb-6">
-          <span className="flex items-center gap-1">
-            <img 
-              src="/stanford_logo.png"
-              alt="Stanford Logo"
-              width={240}
-              height={240}
-              className="rounded-full"
-            />
-          </span>
+    <>
+      <section className="flex flex-col lg:flex-row gap-8 items-start justify-between w-full max-w-7xl mx-auto py-12 px-10 pt-10">
+        {/* Left Side */}
+        <div className="flex-1 min-w-[320px] max-w-xl">
+          <div className="flex gap-3 mb-6">
+            <span className="flex items-center gap-1">
+              <img 
+                src="/stanford_logo.png"
+                alt="Stanford Logo"
+                width={240}
+                height={240}
+                className="rounded-full"
+              />
+            </span>
+          </div>
+          <h1 className="text-5xl font-bold text-[#121416] mb-6 leading-tight tracking-tight">
+            {userName ? `Hi ${userName}, Help Improve Wikipedia` : 'Help Improve Wikipedia'}
+          </h1>
+          <p className="text-lg text-[#121416] mb-8 font-normal">
+            Join Stanford researchers in fixing millions of inconsistencies in Wikipedia. 
+            Your contributions will directly improve the world's largest knowledge base 
+            and earn you rewards for your impact.
+          </p>
+          <div className="rounded-2xl border border-[#f1f2f4] p-6 mb-6 bg-[#f1f2f4]">
+            <div className="flex items-center justify-between mb-2">
+              <span className="font-bold text-[#121416]">Goal: Fix 100 Inconsistencies</span>
+              <span className="text-xs text-[#121416] font-medium">{Math.round(progressPercentage)}% complete</span>
+            </div>
+            <div className="text-xs text-[#121416] mb-1 flex justify-between">
+              <span>{stats?.total_completed_tasks || 0} tasks completed</span>
+              <span>{stats?.total_points_awarded || 0} points earned</span>
+            </div>
+            <div className="w-full h-2 bg-white rounded-full overflow-hidden mb-2">
+              <div 
+                className="h-full bg-[#1ca152] rounded-full transition-all duration-500" 
+                style={{ width: `${progressPercentage}%` }}
+              ></div>
+            </div>
+            <div className="flex items-center gap-2 text-xs mt-1 text-[#121416]">
+              {isLoading ? (
+                'Loading community stats...'
+              ) : (
+                <>
+                  Join {stats?.total_users || 0}+ contributors making a real impact on Wikipedia.
+                </>
+              )}
+            </div>
+          </div>
+          <div className="flex gap-4">
+            <button 
+              onClick={handleStartContributing}
+              className="bg-[#121416] text-white font-bold rounded-xl px-7 py-3 text-base hover:bg-[#23272f] transition"
+            >
+              {isLoggedIn ? 'Start New Task' : 'Start Contributing'}
+            </button>
+            <button className="bg-white border border-[#121416] text-[#121416] font-semibold rounded-xl px-7 py-3 text-base hover:bg-[#f1f2f4] transition">Learn How It Works</button>
+          </div>
         </div>
-        <h1 className="text-5xl font-bold text-[#121416] mb-6 leading-tight tracking-tight">
-          {userName ? `Hi ${userName}, Help Improve Wikipedia` : 'Help Improve Wikipedia'}
-        </h1>
-        <p className="text-lg text-[#121416] mb-8 font-normal">Stanford researchers found millions of inconsistencies in Wikipedia. Join our community to help fix them and make knowledge more accessible for everyone.</p>
-        <div className="rounded-2xl border border-[#f1f2f4] p-6 mb-6 bg-[#f1f2f4]">
-          <div className="flex items-center justify-between mb-2">
-            <span className="font-bold text-[#121416]">Goal: Fix 100 Inconsistencies</span>
-            <span className="text-xs text-[#121416] font-medium">{Math.round(progressPercentage)}% complete</span>
-          </div>
-          <div className="text-xs text-[#121416] mb-1 flex justify-between">
-            <span>{stats?.total_completed_tasks || 0} tasks completed</span>
-          </div>
-          <div className="w-full h-2 bg-white rounded-full overflow-hidden mb-2">
-            <div 
-              className="h-full bg-[#1ca152] rounded-full transition-all duration-500" 
-              style={{ width: `${progressPercentage}%` }}
-            ></div>
-          </div>
-          <div className="flex items-center gap-2 text-xs mt-1 text-[#121416]">
-            {isLoading ? (
-              'Loading community stats...'
-            ) : (
-              <>
-                Every contribution matters! Join {stats?.total_users || 0}+ people improving Wikipedia.
-              </>
-            )}
-          </div>
+        {/* Right Side */}
+        <div className="flex-1 min-w-[320px] ml-20 mt-20">
+          <img 
+            src="/hero.png"
+            alt="Wikipedia Fact Checking"
+            className="w-full h-auto rounded-2xl"
+          />
         </div>
-        <div className="flex gap-4">
-          <button 
-            onClick={handleStartContributing}
-            className="bg-[#121416] text-white font-bold rounded-xl px-7 py-3 text-base hover:bg-[#23272f] transition"
-          >
-            {isLoggedIn ? 'Start New Task' : 'Start Contributing'}
-          </button>
-          <button className="bg-white border border-[#121416] text-[#121416] font-semibold rounded-xl px-7 py-3 text-base hover:bg-[#f1f2f4] transition">Learn How It Works</button>
-        </div>
-      </div>
-      {/* Right Side */}
-      <div className="flex-1 min-w-[320px] ml-20 mt-20">
-        <img 
-          src="/hero.png"
-          alt="Wikipedia Fact Checking"
-          className="w-full h-auto rounded-2xl"
-        />
-      </div>
-    </section>
+      </section>
+      
+      {/* Impact Section */}
+      <ImpactSection 
+        totalContributors={stats?.total_users || 0}
+        totalFixed={stats?.total_completed_tasks || 0}
+      />
+    </>
   );
 }
