@@ -9,6 +9,7 @@ import { useConfetti } from '@/contexts/ConfettiContext';
 import { useProgress } from '@/contexts/ProgressContext';
 import Image from 'next/image';
 import { TaskData, TaskSubmission, fetchTask, submitTask, fetchRandomTask } from '@/types/task';
+import WikipediaEmbed from '@/components/WikipediaEmbed';
 
 const ReactConfetti = dynamic(() => import('react-confetti'), {
   ssr: false
@@ -340,8 +341,8 @@ export default function TaskDetailPage() {
                 )} */}
               </div>
               {/* CTA Section - always visible at bottom */}
-              <div className="bg-[#f5f5f5] pt-4">
-                <section className="bg-[#f5f5f5] rounded-xl p-4 flex flex-col gap-3">
+              <div className="bg-[#f5f5f5]">
+                <section className="bg-[#f5f5f5] rounded-xl p-4 flex flex-col gap-3 pb-0">
                   <div className="flex gap-4 mb-2">
                     <button 
                       className={`flex-1 px-4 py-2 rounded-lg text-lg font-bold transition-colors ${
@@ -397,32 +398,7 @@ export default function TaskDetailPage() {
               </div>
             </div>
             {/* Right Pane: Wikipedia Article */}
-            <div className="h-full w-full bg-white rounded-lg border border-[#f1f2f4] overflow-hidden">
-              {wikiUrl ? (
-                <object
-                  data={wikiUrl}
-                  type="text/html"
-                  className="w-full h-full"
-                  style={{ minHeight: '100%', minWidth: '100%' }}
-                >
-                  <div className="flex items-center justify-center h-full text-[#60758a] text-xs">
-                    Unable to load Wikipedia article.
-                    <a
-                      href={wikiUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[#1a73e8] hover:underline ml-1"
-                    >
-                      Open in new tab
-                    </a>
-                  </div>
-                </object>
-              ) : (
-                <div className="flex items-center justify-center h-full text-[#60758a] text-sm">
-                  Select a reference to view the Wikipedia article
-                </div>
-              )}
-            </div>
+            <WikipediaEmbed wikiUrl={wikiUrl} highlightText={task.claim_text_span} />
           </Split>
         </div>
       </div>
