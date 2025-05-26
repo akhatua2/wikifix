@@ -142,6 +142,11 @@ export default function ProfilePage() {
         });
         if (statsRes.ok) {
           const statsData = await statsRes.json();
+          console.log('User Stats:', {
+            points: statsData.points,
+            rank: statsData.rank,
+            completed_tasks: statsData.completed_tasks
+          });
           setStats(statsData);
         }
 
@@ -220,76 +225,6 @@ export default function ProfilePage() {
     fetchInterests();
   }, [user]);
 
-  const ReferralSection = () => {
-    const [copied, setCopied] = useState(false);
-
-    const copyToClipboard = async () => {
-      if (referralInfo?.referral_link) {
-        await navigator.clipboard.writeText(referralInfo.referral_link);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }
-    };
-
-    return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4">Invite Friends</h2>
-        <div className="space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
-              <p className="text-sm text-gray-600 mb-2">Your Referral Link</p>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={referralInfo?.referral_link || ''}
-                  readOnly
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-50"
-                />
-                <button
-                  onClick={copyToClipboard}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                >
-                  {copied ? 'Copied!' : 'Copy'}
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-600">Total Referrals</p>
-              <p className="text-2xl font-semibold">{referralInfo?.referral_count || 0}</p>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-600">Points Earned</p>
-              <p className="text-2xl font-semibold">{referredUsers.length * 50}</p>
-            </div>
-          </div>
-
-          {referredUsers.length > 0 && (
-            <div className="mt-6">
-              <h3 className="text-lg font-semibold mb-3">Your Referrals</h3>
-              <div className="space-y-3">
-                {referredUsers.map((user) => (
-                  <div key={user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="font-medium">{user.name || user.email}</p>
-                      <p className="text-sm text-gray-600">Joined {new Date(user.joined_at).toLocaleDateString()}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-600">Points Earned</p>
-                      <p className="font-medium text-green-600">+{user.points_earned}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
   if (!mounted || !user) {
     return null;
   }
@@ -314,7 +249,9 @@ export default function ProfilePage() {
                   <Image
                     src={`/cups/${stats.rank === 1 ? 'first' : stats.rank === 2 ? 'second' : 'third'}.png`}
                     alt={`Rank ${stats.rank}`}
-                    className="absolute w-14 h-14 -bottom-3 -right-3 z-10"
+                    width={56}
+                    height={56}
+                    className="absolute -bottom-3 -right-3 z-10"
                   />
                 )}
               </div>
@@ -322,9 +259,34 @@ export default function ProfilePage() {
               {/* User Info and Interests */}
               <div className="flex flex-col gap-4 flex-1">
                 <div className="flex flex-col">
-                  <p className="text-[22px] font-bold leading-tight tracking-[-0.015em] text-gray-900">
-                    {user.name || user.email}
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-[22px] font-bold leading-tight tracking-[-0.015em] text-gray-900">
+                      {user.name || user.email}
+                    </p>
+                    <div className="relative group">
+                      <button
+                        onClick={async () => {
+                          if (referralInfo?.referral_link) {
+                            try {
+                              await navigator.clipboard.writeText(referralInfo.referral_link);
+                              // Show feedback
+                              const button = document.activeElement as HTMLButtonElement;
+                              const originalText = button.textContent;
+                              button.textContent = 'Copied!';
+                              setTimeout(() => {
+                                button.textContent = originalText;
+                              }, 2000);
+                            } catch (err) {
+                              console.error('Failed to copy:', err);
+                            }
+                          }
+                        }}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+                      >
+                        Invite Friends (+50 points)
+                      </button>
+                    </div>
+                  </div>
                   {stats && (
                     <>
                       <p className="text-base font-normal leading-normal text-gray-600">
@@ -362,9 +324,6 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
-
-          {/* Referral Section */}
-          <ReferralSection />
 
           {/* Verified Claims Section */}
           <div className="px-4 py-3">

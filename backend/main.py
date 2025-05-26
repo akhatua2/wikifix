@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 from db.db import init_models
 from db.user_ops import User, get_user_by_id, get_or_create_user, get_user_completed_tasks, update_user_topics, update_user_languages
 from db.tasks_ops import get_task, get_open_tasks, complete_task, get_random_open_task
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from sqlalchemy import select, func
 from db.db import AsyncSessionLocal
 from typing import List, Optional
@@ -260,6 +260,13 @@ async def get_task_by_id(task_id: str, current_user: User = Depends(get_current_
 class TaskSubmission(BaseModel):
     agrees_with_claim: bool
     user_analysis: str
+
+    @field_validator('user_analysis')
+    @classmethod
+    def validate_user_analysis(cls, v):
+        if not v or not v.strip():
+            raise ValueError('User analysis is required')
+        return v.strip()
     
 @app.post("/api/tasks/{task_id}/submit")
 async def submit_task(
@@ -325,12 +332,25 @@ async def get_user_stats(
             detail="Not authorized to view other users' stats"
         )
     
-    # For now, we'll return mock data since badges and rank are not implemented yet
+    async with AsyncSessionLocal() as session:
+        # Calculate user's rank based on points
+        rank_result = await session.execute(
+            select(func.count(User.id))
+            .where(User.points > current_user.points)
+        )
+        user_rank = rank_result.scalar_one() + 1
+        
+        print(f"=== User Stats ===")
+        print(f"User ID: {current_user.id}")
+        print(f"Points: {current_user.points}")
+        print(f"Completed Tasks: {current_user.completed_tasks}")
+        print(f"Rank: {user_rank}")
+    
     return {
         "points": current_user.points,
         "completed_tasks": current_user.completed_tasks,
         "badges": 0,  # TODO: Implement badges
-        "rank": 1,    # TODO: Implement ranking system
+        "rank": user_rank,
     }
 
 @app.get("/api/users/{user_id}/completed-tasks/list")

@@ -128,6 +128,11 @@ export default function TaskDetailPage() {
       return;
     }
 
+    if (!explanation.trim()) {
+      setError('Please provide your reasoning or feedback');
+      return;
+    }
+
     try {
       setSubmitting(true);
       const userData = JSON.parse(localStorage.getItem("wikifacts_user") || "null");
@@ -392,12 +397,12 @@ export default function TaskDetailPage() {
                       className={`px-4 py-2 rounded-lg text-lg font-bold transition-colors ${
                         submitting 
                           ? 'bg-[#dce8f3] text-[#60758a] cursor-not-allowed'
-                          : !selectedOption
+                          : !selectedOption || !explanation.trim()
                             ? 'bg-[#dce8f3] text-gray-900 cursor-not-allowed'
                             : 'bg-[#1a73e8] text-white hover:bg-[#1557b0]'
                       }`}
                       onClick={handleSubmit}
-                      disabled={submitting || !selectedOption}
+                      disabled={submitting || !selectedOption || !explanation.trim()}
                     >
                       {submitting ? 'Submitting...' : 'Submit Analysis'}
                     </button>
