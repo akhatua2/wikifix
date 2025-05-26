@@ -118,17 +118,72 @@ export default function Navbar() {
     const popup = window.open(
       `${API_URL}/auth/google/login`,
       "googleLogin",
-      "width=500,height=600"
+      "width=500,height=600,scrollbars=yes,resizable=yes"
     );
   
-    window.addEventListener("message", (event) => {
-      if (event.data?.email) {
+    if (!popup) {
+      alert('Popup blocked. Please allow popups for this site.');
+      return;
+    }
+  
+    const messageHandler = (event: MessageEvent) => {
+      // Critical: Validate origin to prevent security issues
+      const expectedOrigin = new URL(API_URL).origin;
+      if (event.origin !== expectedOrigin) {
+        console.log('Ignoring message from unexpected origin:', event.origin);
+        return;
+      }
+      
+      // Check for valid user data with all required fields
+      if (event.data?.email && event.data?.token && event.data?.id) {
+        console.log('Received valid user data:', event.data);
         localStorage.setItem("wikifacts_user", JSON.stringify(event.data));
         setUser(event.data);
-        popup?.close();
+        
+        // Redirect if user needs onboarding
+        if (event.data.needs_onboarding) {
+          window.location.href = '/onboarding/topics';
+        }
+        
+        // Clean up
+        cleanup();
+      } else if (event.data?.error) {
+        console.error('OAuth error:', event.data.error);
+        alert('Login failed. Please try again.');
+        cleanup();
       }
-    }, { once: true });
+    };
+  
+    const cleanup = () => {
+      window.removeEventListener("message", messageHandler);
+      if (popup && !popup.closed) {
+        popup.close();
+      }
+      if (checkClosedInterval) {
+        clearInterval(checkClosedInterval);
+      }
+    };
+  
+    // Add the message listener (without { once: true })
+    window.addEventListener("message", messageHandler);
+    
+    // Monitor if popup is manually closed
+    const checkClosedInterval = setInterval(() => {
+      if (popup.closed) {
+        console.log('Popup was closed manually');
+        cleanup();
+      }
+    }, 1000);
+  
+    // Timeout after 5 minutes
+    setTimeout(() => {
+      if (!popup.closed) {
+        console.log('Login timeout');
+        cleanup();
+      }
+    }, 300000);
   };
+  
 
   const handleLogout = async () => {
     try {
@@ -249,6 +304,8 @@ export default function Navbar() {
                           <Image
                             src={`/cups/${userRank === 1 ? 'first' : userRank === 2 ? 'second' : 'third'}.png`}
                             alt={`Rank ${userRank}`}
+                            width={24}
+                            height={24}
                             className="absolute w-6 h-6 -bottom-2 -right-2 z-10"
                           />
                         )}

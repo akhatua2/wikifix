@@ -343,7 +343,7 @@ export default function ProfilePage() {
                     const t = topicsList.find(t => t.key === topic);
                     return (
                       <span key={topic} className="flex items-center bg-[#e6f4ea] text-[#1cb760] px-3 py-1 rounded-full text-sm font-medium gap-1">
-                        {t?.icon && <Image src={t.icon} alt={t.name} className="w-5 h-5 mr-1 rounded-full" />}
+                        {t?.icon && <Image src={t.icon} alt={t.name} width={20} height={20} className="w-5 h-5 mr-1 rounded-full" />}
                         {t?.name || topic}
                       </span>
                     );
@@ -353,7 +353,7 @@ export default function ProfilePage() {
                     const l = languagesList.find(l => l.code === lang);
                     return (
                       <span key={lang} className="flex items-center bg-[#e6eaf4] text-[#1c4db7] px-3 py-1 rounded-full text-sm font-medium gap-1">
-                        {l?.flag && <Image src={l.flag} alt={l.name} className="w-5 h-5 mr-1 rounded-full" />}
+                        {l?.flag && <Image src={l.flag} alt={l.name} width={20} height={20} className="w-5 h-5 mr-1 rounded-full" />}
                         {l?.name || lang}
                       </span>
                     );

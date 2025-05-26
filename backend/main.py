@@ -26,11 +26,15 @@ app.add_middleware(SessionMiddleware, secret_key=os.getenv("SESSION_SECRET"))
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "*"],  # Frontend URL
+    allow_origins=[
+        "http://localhost:3000",
+        os.getenv("FRONTEND_URL", "http://localhost:3000")
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
+
 
 # JWT Authentication
 security = HTTPBearer()
@@ -97,50 +101,98 @@ async def login(request: Request, referral_code: Optional[str] = None):
 
 @app.get("/auth/google/callback")
 async def auth(request: Request):
-    token = await oauth.google.authorize_access_token(request)
-    print("[SERVER] Google token:", token)
-    userinfo = token["userinfo"]
-    print("[SERVER] Google userinfo:", userinfo)
-    
-    # Get referral code from session if it exists
-    referral_code = request.session.get('referral_code')
-    if referral_code:
-        del request.session['referral_code']  # Clear it after use
-    
-    # Fetch and encode image
-    picture_url = userinfo.get("picture")
-    picture_data = None
-    if picture_url:
-        response = requests.get(picture_url)
-        if response.status_code == 200:
-            picture_data = f"data:image/jpeg;base64,{base64.b64encode(response.content).decode('utf-8')}"
-    
-    # Get or create user in DB with referral code if present
-    db_user = await get_or_create_user(
-        email=userinfo["email"],
-        name=userinfo.get("name"),
-        picture=picture_data or picture_url,
-        referral_code=referral_code
-    )
-    
-    # Generate JWT token
-    jwt_token = db_user.generate_token()
-    
-    # Send UUID, user info, and JWT token to frontend
-    user_to_frontend = {
-        "id": db_user.id,
-        "email": db_user.email,
-        "name": db_user.name,
-        "picture": db_user.picture,
-        "token": jwt_token,
-        "referral_code": db_user.referral_code
-    }
-    html_content = f"""
-    <script>
-    window.opener.postMessage({json.dumps(user_to_frontend)}, "{FRONTEND_URL}");
-    </script>
-    """
-    return HTMLResponse(content=html_content)
+    try:
+        token = await oauth.google.authorize_access_token(request)
+        print("[SERVER] Google token:", token)
+        userinfo = token["userinfo"]
+        print("[SERVER] Google userinfo:", userinfo)
+        
+        # Get referral code from session if it exists
+        referral_code = request.session.get('referral_code')
+        if referral_code:
+            del request.session['referral_code']
+        
+        # Fetch and encode image
+        picture_url = userinfo.get("picture")
+        picture_data = None
+        if picture_url:
+            try:
+                response = requests.get(picture_url, timeout=10)
+                if response.status_code == 200:
+                    picture_data = f"data:image/jpeg;base64,{base64.b64encode(response.content).decode('utf-8')}"
+            except Exception as e:
+                print(f"Failed to fetch profile picture: {e}")
+                picture_data = picture_url
+        
+        # Get or create user in DB
+        db_user = await get_or_create_user(
+            email=userinfo["email"],
+            name=userinfo.get("name"),
+            picture=picture_data or picture_url,
+            referral_code=referral_code
+        )
+        
+        # Generate JWT token
+        jwt_token = db_user.generate_token()
+        
+        # Check if user needs onboarding (has no topics or languages set)
+        needs_onboarding = not db_user.get_topics() and not db_user.get_languages()
+        
+        # Send user data to frontend
+        user_to_frontend = {
+            "id": db_user.id,
+            "email": db_user.email,
+            "name": db_user.name,
+            "picture": db_user.picture,
+            "token": jwt_token,
+            "referral_code": db_user.referral_code,
+            "needs_onboarding": needs_onboarding
+        }
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Login Success</title>
+        </head>
+        <body>
+            <script>
+            try {{
+                console.log('Sending user data to parent window');
+                window.opener.postMessage({json.dumps(user_to_frontend)}, "{FRONTEND_URL}");
+                window.close();
+            }} catch (error) {{
+                console.error('Failed to send message to parent:', error);
+                document.body.innerHTML = '<p>Login successful! You can close this window.</p>';
+            }}
+            </script>
+        </body>
+        </html>
+        """
+        return HTMLResponse(content=html_content)
+        
+    except Exception as e:
+        print(f"OAuth error: {e}")
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Login Error</title>
+        </head>
+        <body>
+            <script>
+            try {{
+                window.opener.postMessage({{error: "Authentication failed: {str(e)}"}}, "{FRONTEND_URL}");
+                window.close();
+            }} catch (error) {{
+                document.body.innerHTML = '<p>Login failed. Please close this window and try again.</p>';
+            }}
+            </script>
+        </body>
+        </html>
+        """
+        return HTMLResponse(content=html_content)
+
 
 @app.post("/auth/logout")
 def logout(response: Response):

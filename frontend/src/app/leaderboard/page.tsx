@@ -69,6 +69,8 @@ export default function LeaderboardPage() {
                       <Image
                         src={`/cups/${user.rank === 1 ? 'first' : user.rank === 2 ? 'second' : 'third'}.png`}
                         alt={`Rank ${user.rank}`}
+                        width={24}
+                        height={24}
                         className="w-6 h-6 mr-1"
                       />
                     )}

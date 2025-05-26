@@ -68,24 +68,24 @@ export default function ImpactSection({ totalContributors, totalFixed }: ImpactS
             {/* Step 1: LLM flagging (find + agent) */}
             <div className="flex flex-col items-center text-center">
               <div className="flex justify-center gap-2 mb-4">
-                <Image src="/process/find.png" alt="LLM Find" className="w-32 h-32 inline-block" />
-                <Image src="/process/agent.png" alt="LLM Agent" className="w-32 h-32 inline-block" />
+                <Image src="/process/find.png" alt="LLM Find" width={128} height={128} className="w-32 h-32 inline-block" />
+                <Image src="/process/agent.png" alt="LLM Agent" width={128} height={128} className="w-32 h-32 inline-block" />
               </div>
               <p className="text-base text-[#121416] font-medium">Our system flags a possible inconsistency</p>
             </div>
             {/* Step 2: You check the flagged content */}
             <div className="flex flex-col items-center text-center">
-              <Image src="/process/review.png" alt="You Review" className="w-32 h-32 mb-4" />
+              <Image src="/process/review.png" alt="You Review" width={128} height={128} className="w-32 h-32 mb-4" />
               <p className="text-base text-[#121416] font-medium">You check the flagged content</p>
             </div>
             {/* Step 3: You submit the fix and get acknowledged */}
             <div className="flex flex-col items-center text-center">
-              <Image src="/process/submit.png" alt="Submit to Wikipedia" className="w-32 h-32 mb-4" />
+              <Image src="/process/submit.png" alt="Submit to Wikipedia" width={128} height={128} className="w-32 h-32 mb-4" />
               <p className="text-base text-[#121416] font-medium">We submit the fix to Wikipedia, acknowledging your contribution</p>
             </div>
             {/* Step 4: Rewards */}
             <div className="flex flex-col items-center text-center">
-              <Image src="/process/reward.png" alt="Earn Rewards" className="w-32 h-32 mb-4" />
+              <Image src="/process/reward.png" alt="Earn Rewards" width={128} height={128} className="w-32 h-32 mb-4" />
               <p className="text-base text-[#121416] font-medium">You earn points and rewards</p>
             </div>
           </div>

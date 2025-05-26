@@ -144,6 +144,8 @@ export default function Hero() {
           <Image 
             src="/hero.png"
             alt="Wikipedia Fact Checking"
+            width={600}
+            height={400}
             className="w-full h-auto rounded-2xl"
           />
         </div>
