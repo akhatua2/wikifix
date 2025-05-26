@@ -46,14 +46,6 @@ interface ReferralInfo {
   referral_link: string;
 }
 
-interface ReferredUser {
-  id: string;
-  name: string;
-  email: string;
-  joined_at: string;
-  points_earned: number;
-}
-
 const topicsList = [
   { key: "science", name: "Science", icon: "/science.png" },
   { key: "history", name: "History", icon: "/history.png" },
@@ -116,7 +108,6 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [userInterests, setUserInterests] = useState<{ topics: string[]; languages: string[] }>({ topics: [], languages: [] });
   const [referralInfo, setReferralInfo] = useState<ReferralInfo | null>(null);
-  const [referredUsers, setReferredUsers] = useState<ReferredUser[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -181,17 +172,6 @@ export default function ProfilePage() {
         if (referralRes.ok) {
           const referralData = await referralRes.json();
           setReferralInfo(referralData);
-        }
-
-        // Fetch referred users
-        const referredUsersRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'}/api/users/${user.id}/referrals`, {
-          headers: {
-            'Authorization': `Bearer ${user.token}`
-          }
-        });
-        if (referredUsersRes.ok) {
-          const referredUsersData = await referredUsersRes.json();
-          setReferredUsers(referredUsersData);
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -421,6 +401,33 @@ export default function ProfilePage() {
               )}
             </div>
           </div>
+
+          {/* Referred Users Section */}
+          {/* <div className="mt-8 px-4">
+            <h3 className="text-lg font-bold leading-tight tracking-[-0.015em] pb-2 text-gray-900">Referred Users</h3>
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-900">User</th>
+                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-900">Joined</th>
+                    <th className="px-4 py-2 text-right text-sm font-medium text-gray-900">Points Earned</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {referredUsers.map((user) => (
+                    <tr key={user.id} className="border-t border-gray-200">
+                      <td className="px-4 py-2 text-sm text-gray-900">{user.name || user.email}</td>
+                      <td className="px-4 py-2 text-sm text-gray-600">
+                        {new Date(user.joined_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-2 text-sm text-gray-900 text-right">+{user.points_earned}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div> */}
         </div>
       </div>
     </div>
