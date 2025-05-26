@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Image from 'next/image';
+
 interface LeaderboardUser {
   id: string;
   name: string;
@@ -11,7 +12,6 @@ interface LeaderboardUser {
 
 interface LeaderboardData {
   total_users: number;
-  user_rank: number;
   users: LeaderboardUser[];
 }
 
@@ -20,16 +20,10 @@ export default function LeaderboardPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem("wikifacts_user") || "null");
-    if (!userData) return;
     const fetchLeaderboard = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'}/api/leaderboard`, {
-          headers: {
-            'Authorization': `Bearer ${userData.token}`
-          }
-        });
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'}/api/leaderboard`);
         if (res.ok) {
           const data = await res.json();
           setLeaderboard(data);
@@ -58,7 +52,7 @@ export default function LeaderboardPage() {
             <>
               <div className="p-4 border-b border-gray-200 bg-gray-50">
                 <p className="text-sm text-gray-600">
-                  Your Rank: <span className="font-bold text-gray-900">{leaderboard.user_rank}</span> of {leaderboard.total_users} users
+                  Total Contributors: <span className="font-bold text-gray-900">{leaderboard.total_users}</span>
                 </p>
               </div>
               {leaderboard.users.map((user) => (

@@ -136,7 +136,12 @@ export default function Hero() {
             >
               {isLoggedIn ? 'Start New Task' : 'Start Contributing'}
             </button>
-            <button className="bg-white border border-[#121416] text-[#121416] font-semibold rounded-xl px-7 py-3 text-base hover:bg-[#f1f2f4] transition">Learn How It Works</button>
+            <button 
+              onClick={() => router.push('/about')}
+              className="bg-white border border-[#121416] text-[#121416] font-semibold rounded-xl px-7 py-3 text-base hover:bg-[#f1f2f4] transition"
+            >
+              Learn How It Works
+            </button>
           </div>
         </div>
         {/* Right Side */}

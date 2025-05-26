@@ -388,7 +388,6 @@ async def get_user_completed_tasks_list(
 
 @app.get("/api/leaderboard")
 async def get_leaderboard(
-    current_user: User = Depends(get_current_user),
     limit: int = 10,
     offset: int = 0
 ):
@@ -407,16 +406,8 @@ async def get_leaderboard(
         )
         users = result.scalars().all()
 
-        # Get current user's rank
-        user_rank_result = await session.execute(
-            select(func.count(User.id))
-            .where(User.points > current_user.points)
-        )
-        user_rank = user_rank_result.scalar_one() + 1
-
         return {
             "total_users": total_users,
-            "user_rank": user_rank,
             "users": [
                 {
                     "id": user.id,

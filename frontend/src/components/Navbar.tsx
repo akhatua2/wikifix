@@ -246,14 +246,16 @@ export default function Navbar() {
             >
               Home
             </Link>
-            <Link 
-              className={`text-sm font-medium leading-normal ${
-                isActive('/tasks') ? 'text-[#121416]' : 'text-[#60758a] hover:text-[#121416]'
-              }`} 
-              href="/tasks"
-            >
-              Tasks
-            </Link>
+            {user && (
+              <Link 
+                className={`text-sm font-medium leading-normal ${
+                  isActive('/tasks') ? 'text-[#121416]' : 'text-[#60758a] hover:text-[#121416]'
+                }`} 
+                href="/tasks"
+              >
+                Tasks
+              </Link>
+            )}
             <Link 
               className={`text-sm font-medium leading-normal ${
                 isActive('/about') ? 'text-[#121416]' : 'text-[#60758a] hover:text-[#121416]'
