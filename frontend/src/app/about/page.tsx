@@ -114,17 +114,6 @@ export default function AboutPage() {
               <p className="text-[#6a7681] text-sm font-normal leading-normal">Get recognized within the community for your valuable contributions and expertise.</p>
             </div>
           </div>
-          <div className="flex flex-1 gap-3 rounded-lg border border-[#dde1e3] bg-white p-4 flex-col">
-            <div className="text-[#121416]" data-icon="Presentation" data-size="24px" data-weight="regular">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                <path d="M216,40H136V24a8,8,0,0,0-16,0V40H40A16,16,0,0,0,24,56V176a16,16,0,0,0,16,16H79.36L57.75,219a8,8,0,0,0,12.5,10l29.59-37h56.32l29.59,37a8,8,0,1,0,12.5-10l-21.61-27H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,136H40V56H216V176Z"></path>
-              </svg>
-            </div>
-            <div className="flex flex-col gap-1">
-              <h2 className="text-[#121416] text-base font-bold leading-tight">Research Acknowledgement</h2>
-              <p className="text-[#6a7681] text-sm font-normal leading-normal">Top contributors may be acknowledged in research publications for their work.</p>
-            </div>
-          </div>
         </div>
 
         {/* Project Leadership Section */}
