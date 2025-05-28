@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Image from 'next/image';
 
 const languages = [
+  { code: "en", name: "English", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/bbe17e16aa4a106032d8e3521eaed13e.svg" },
   { code: "es", name: "Spanish", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/59a90a2cedd48b751a8fd22014768fd7.svg" },
   { code: "fr", name: "French", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/482fda142ee4abd728ebf4ccce5d3307.svg" },
   { code: "ja", name: "Japanese", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/edea4fa18ff3e7d8c0282de3f102aaed.svg" },
@@ -16,7 +17,6 @@ const languages = [
   { code: "ar", name: "Arabic", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/9ab6930a263c981b57f9d578ac97cae7.svg" },
   { code: "pt", name: "Portuguese", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/27d253ae1272917fc9f4a79459aacd53.svg" },
   { code: "tr", name: "Turkish", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/bc80a9518cd6d5af6ae14e8b22b8a1f4.svg" },
-  { code: "en", name: "English", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/bbe17e16aa4a106032d8e3521eaed13e.svg" },
   { code: "nl", name: "Dutch", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/de945d789e249dcd74333a6996472ef8.svg" },
   { code: "el", name: "Greek", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/8db373482261397a3159d3f370eed2f3.svg" },
   { code: "vi", name: "Vietnamese", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/2b077d42185bc45d4896ed55f15c4fea.svg" },
