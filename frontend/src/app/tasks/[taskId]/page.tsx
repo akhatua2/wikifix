@@ -311,7 +311,7 @@ export default function TaskDetailPage() {
                     <h2 className="text-lg font-bold text-gray-900 mb-2">Claim</h2>
                     <p className="text-xl font-semibold text-gray-900 mb-2">{task.claim?.sentence || 'No claim provided'}</p>
                     {task.claim?.text_span && (
-                      <p className="text-sm text-gray-600 italic">"{task.claim.text_span}"</p>
+                      <p className="text-sm text-gray-600 italic">&quot;{task.claim.text_span}&quot;</p>
                     )}
                     {task.claim?.context && (
                       <div className="mt-3">
@@ -334,7 +334,7 @@ export default function TaskDetailPage() {
                   <div className="mb-2">
                     <h2 className="text-lg font-bold text-gray-900 mb-2">Evidence</h2>
                     {task.evidence?.sentence && (
-                      <p className="text-lg font-semibold text-gray-900 mb-2">"{task.evidence.sentence}"</p>
+                      <p className="text-lg font-semibold text-gray-900 mb-2">&quot;{task.evidence.sentence}&quot;</p>
                     )}
                     {task.evidence?.context && (
                       <div className="mt-3">

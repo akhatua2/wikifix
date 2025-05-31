@@ -97,7 +97,7 @@ export default function AllTasksPage() {
                     {task.status}
                   </span>
                 </div>
-                <p className="text-[#121416] text-base mb-3">{task.claim}</p>
+                <p className="text-[#121416] text-base mb-3">{task.claim.sentence}</p>
                 <div className="flex justify-between items-center">
                   <span className="px-2 py-1 rounded-lg bg-[#f1f2f4] text-[#121416] text-sm">
                     {task.topic}

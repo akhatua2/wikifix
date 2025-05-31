@@ -21,12 +21,22 @@ interface UserStats {
 
 interface CompletedTask {
   id: string;
-  claim: string;
-  claim_text_span?: string;
-  claim_url?: string;
-  context: string;
-  report?: string;
-  report_urls?: string;
+  claim: {
+    sentence: string;
+    context?: string;
+    document_title?: string;
+    text_span?: string;
+    url?: string;
+  };
+  evidence: {
+    sentence: string;
+    context?: string;
+    document_title?: string;
+    text_span?: string;
+    url?: string;
+  };
+  llm_analysis?: string;
+  contradiction_type?: string;
   agrees_with_claim: boolean;
   analysis: string;
   completed_at: string;
@@ -342,7 +352,7 @@ export default function ProfilePage() {
                     completedTasks.map((task) => (
                       <tr key={task.id} className="border-t border-gray-200">
                         <td className="h-8 px-3 py-1.5 w-[400px] text-gray-900 text-sm font-normal leading-normal">
-                          {task.claim}
+                          {task.claim.sentence}
                         </td>
                         <td className="h-8 px-3 py-1.5 w-32 text-right">
                           <button className="inline-flex items-center justify-center overflow-hidden rounded h-5 px-2 bg-gray-100 text-gray-900 text-xs font-medium leading-normal hover:bg-gray-200 transition-colors">

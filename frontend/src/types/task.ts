@@ -1,17 +1,25 @@
 export interface TaskData {
   id: string;
-  claim: string;
-  claim_text_span?: string;
-  claim_url?: string;
-  context: string;
-  report?: string;
-  report_urls?: string;
+  claim: {
+    sentence: string;
+    context?: string;
+    document_title?: string;
+    text_span?: string;
+    url?: string;
+  };
+  evidence: {
+    sentence: string;
+    context?: string;
+    document_title?: string;
+    text_span?: string;
+    url?: string;
+  };
+  llm_analysis?: string;
+  contradiction_type?: string;
   topic: string;
   difficulty: 'Easy' | 'Medium' | 'Hard';
   status: string;
   xp?: number;
-  analysis?: string;
-  references?: string[];
 }
 
 export interface TaskSubmission {
