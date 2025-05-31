@@ -18,6 +18,9 @@ from sqlalchemy import select, func
 from db.db import AsyncSessionLocal
 from typing import List, Optional
 
+# Import the new utilities
+from utils.url_mapping import convert_url_if_local_exists, add_fragment_to_local_url, convert_task_url_with_text_span
+
 load_dotenv()
 
 app = FastAPI()
@@ -35,6 +38,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include the Wikipedia router
+from api.wikipedia import router as wikipedia_router
+app.include_router(wikipedia_router, prefix="/api")
 
 # JWT Authentication
 security = HTTPBearer()
@@ -199,11 +205,43 @@ def logout(response: Response):
     response.delete_cookie("session")  # Remove session cookie if set
     return {"message": "Logged out successfully"}
 
+def convert_task_urls_to_local(task_data: dict) -> dict:
+    """Convert Wikipedia URLs in task data to local URLs if available, with text span highlighting."""
+    if task_data.get("claim", {}).get("url") and task_data.get("claim", {}).get("text_span"):
+        original_url = task_data["claim"]["url"]
+        text_span = task_data["claim"]["text_span"]
+        context_text = task_data["claim"].get("context", "")  # Use context for better matching
+        local_url = convert_task_url_with_text_span(original_url, text_span, context_text)
+        task_data["claim"]["url"] = local_url
+    elif task_data.get("claim", {}).get("url"):
+        # Fallback without text span
+        original_url = task_data["claim"]["url"]
+        local_url = convert_url_if_local_exists(original_url)
+        if local_url != original_url:
+            local_url = add_fragment_to_local_url(local_url, original_url)
+        task_data["claim"]["url"] = local_url
+    
+    if task_data.get("evidence", {}).get("url") and task_data.get("evidence", {}).get("text_span"):
+        original_url = task_data["evidence"]["url"]
+        text_span = task_data["evidence"]["text_span"]
+        context_text = task_data["evidence"].get("context", "")  # Use context for better matching
+        local_url = convert_task_url_with_text_span(original_url, text_span, context_text)
+        task_data["evidence"]["url"] = local_url
+    elif task_data.get("evidence", {}).get("url"):
+        # Fallback without text span
+        original_url = task_data["evidence"]["url"]
+        local_url = convert_url_if_local_exists(original_url)
+        if local_url != original_url:
+            local_url = add_fragment_to_local_url(local_url, original_url)
+        task_data["evidence"]["url"] = local_url
+    
+    return task_data
+
 @app.get("/api/tasks")
 async def get_tasks(current_user: User = Depends(get_current_user)):
     """Get all tasks."""
     tasks = await get_open_tasks()
-    return [
+    task_list = [
         {
             "id": task.id,
             "claim": {
@@ -228,6 +266,9 @@ async def get_tasks(current_user: User = Depends(get_current_user)):
         }
         for task in tasks
     ]
+    
+    # Convert URLs to local if available
+    return [convert_task_urls_to_local(task_data) for task_data in task_list]
 
     
 @app.get("/api/tasks/rand")
@@ -238,7 +279,7 @@ async def get_random_task():
     if not task:
         raise HTTPException(status_code=404, detail="No open tasks available")
     
-    return {
+    task_data = {
         "id": task.id,
         "claim": {
             "sentence": task.claim_sentence,
@@ -261,6 +302,9 @@ async def get_random_task():
         "status": task.status.value,
         "xp": 25
     }
+    
+    # Convert URLs to local if available
+    return convert_task_urls_to_local(task_data)
 
 import asyncio
 
@@ -271,7 +315,8 @@ async def get_task_by_id(task_id: str, current_user: User = Depends(get_current_
     task = await get_task(task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-    return {
+    
+    task_data = {
         "id": task.id,
         "claim": {
             "sentence": task.claim_sentence,
@@ -294,6 +339,9 @@ async def get_task_by_id(task_id: str, current_user: User = Depends(get_current_
         "status": task.status.value,
         "xp": 25
     }
+    
+    # Convert URLs to local if available
+    return convert_task_urls_to_local(task_data)
 
 class TaskSubmission(BaseModel):
     agrees_with_claim: bool
@@ -407,7 +455,7 @@ async def get_user_completed_tasks_list(
     await asyncio.sleep(1)
     
     tasks = await get_user_completed_tasks(user_id)
-    return [
+    task_list = [
         {
             "id": task.id,
             "claim": {
@@ -433,6 +481,9 @@ async def get_user_completed_tasks_list(
         }
         for task in tasks
     ]
+    
+    # Convert URLs to local if available
+    return [convert_task_urls_to_local(task_data) for task_data in task_list]
 
 @app.get("/api/leaderboard")
 async def get_leaderboard(
