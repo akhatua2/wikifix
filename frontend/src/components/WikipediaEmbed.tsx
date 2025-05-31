@@ -88,7 +88,7 @@ export default function WikipediaEmbed({ wikiUrl, highlightText }: WikipediaEmbe
         console.log('WikipediaEmbed: Iframe detected as loaded via contentDocument');
         return true;
       }
-    } catch (e) {
+    } catch {
       // Cross-origin restriction - this is expected for external URLs
     }
 
@@ -98,7 +98,7 @@ export default function WikipediaEmbed({ wikiUrl, highlightText }: WikipediaEmbe
         console.log('WikipediaEmbed: Iframe contentWindow exists, assuming loaded');
         return true;
       }
-    } catch (e) {
+    } catch {
       // Some browsers may restrict this too
     }
 
