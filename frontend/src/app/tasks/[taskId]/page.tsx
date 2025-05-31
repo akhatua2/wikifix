@@ -87,8 +87,8 @@ export default function TaskDetailPage() {
         const data = await fetchTask(taskId, userData.token);
         setTask(data);
         // Set initial wiki URL to claim URL if available
-        if (data.claim_url) {
-          setWikiUrl(data.claim_url);
+        if (data.claim?.url) {
+          setWikiUrl(data.claim.url);
         }
         setError(null);
       } catch (error) {
@@ -301,57 +301,67 @@ export default function TaskDetailPage() {
             <div className="flex flex-col h-full min-h-0 pr-4 bg-[#f5f5f5]">
               {/* Scrollable content above CTA */}
               <div className="flex-1 min-h-0 overflow-y-auto">
-                {/* Claim & Context Section */}
+                {/* Claim Section */}
                 <section
                   className="bg-[#f5f5f5] rounded-xl p-4 mb-4 cursor-pointer hover:bg-[#f1f2f4] transition-colors"
-                  onClick={() => task.claim_url && setWikiUrl(task.claim_url)}
-                  title={task.claim_url ? `Show Wikipedia article in viewer` : ''}
+                  onClick={() => task.claim?.url && setWikiUrl(task.claim.url)}
+                  title={task.claim?.url ? `Show Wikipedia article in viewer` : ''}
                 >
                   <div className="mb-2">
-                    <p className="text-2xl font-bold text-gray-900 mb-2">{task.claim || 'No claim provided'}</p>
-                    {task.claim_text_span && (
-                      <p className="text-sm text-gray-600 italic">{task.claim_text_span}</p>
+                    <h2 className="text-lg font-bold text-gray-900 mb-2">Claim</h2>
+                    <p className="text-xl font-semibold text-gray-900 mb-2">{task.claim?.sentence || 'No claim provided'}</p>
+                    {task.claim?.text_span && (
+                      <p className="text-sm text-gray-600 italic">"{task.claim.text_span}"</p>
+                    )}
+                    {task.claim?.context && (
+                      <div className="mt-3">
+                        <h3 className="text-sm font-semibold text-gray-700 mb-1">Context:</h3>
+                        <p className="text-sm text-gray-600">{task.claim.context}</p>
+                      </div>
+                    )}
+                    {task.claim?.document_title && (
+                      <p className="text-sm text-blue-600 mt-2">From: {task.claim.document_title}</p>
                     )}
                   </div>
-                  <div>
-                    {/* <p className="text-lg text-gray-800">{task.context || 'No context provided'}</p> */}
+                </section>
+
+                {/* Evidence Section */}
+                <section
+                  className="bg-[#f5f5f5] rounded-xl p-4 mb-4 cursor-pointer hover:bg-[#f1f2f4] transition-colors"
+                  onClick={() => task.evidence?.url && setWikiUrl(task.evidence.url)}
+                  title={task.evidence?.url ? `Show evidence article in viewer` : ''}
+                >
+                  <div className="mb-2">
+                    <h2 className="text-lg font-bold text-gray-900 mb-2">Evidence</h2>
+                    {task.evidence?.sentence && (
+                      <p className="text-lg font-semibold text-gray-900 mb-2">"{task.evidence.sentence}"</p>
+                    )}
+                    {task.evidence?.context && (
+                      <div className="mt-3">
+                        <h3 className="text-sm font-semibold text-gray-700 mb-1">Full Evidence:</h3>
+                        <p className="text-sm text-gray-600">{task.evidence.context.substring(0, 500)}...</p>
+                      </div>
+                    )}
+                    {task.evidence?.document_title && (
+                      <p className="text-sm text-blue-600 mt-2">From: {task.evidence.document_title}</p>
+                    )}
                   </div>
                 </section>
 
                 {/* Analysis Section */}
-                {/* <section className="bg-[#f5f5f5] rounded-xl p-4 mb-4">
-                  <h2 className="text-lg font-bold text-gray-900 mb-3">LLM Analysis</h2>
-                  <p className="text-base text-gray-800">{task.report || 'No analysis provided'}</p>
-                </section> */}
-
                 <section className="bg-[#f5f5f5] rounded-xl p-4 mb-4">
                   <h2 className="text-lg font-bold text-gray-900 mb-3">LLM Analysis</h2>
                   <div
                     ref={analysisRef}
                     className="text-base text-gray-800 llm-analysis-html"
-                    dangerouslySetInnerHTML={{ __html: task.report || 'No analysis provided' }}
+                    dangerouslySetInnerHTML={{ __html: task.llm_analysis || 'No analysis provided' }}
                   />
+                  {task.contradiction_type && (
+                    <div className="mt-3 p-2 bg-red-50 rounded-lg">
+                      <p className="text-sm font-semibold text-red-800">Contradiction Type: {task.contradiction_type}</p>
+                    </div>
+                  )}
                 </section>
-
-                {/* Report URLs Section */}
-                {/* {task.report_urls && (
-                  <section className="bg-[#f5f5f5] rounded-xl border border-[#f1f2f4] p-4 mb-4">
-                    <h2 className="text-[#121416] text-sm font-bold mb-3">Reference Articles</h2>
-                    <ul className="list-disc list-inside space-y-1">
-                      {JSON.parse(task.report_urls).map((url: string, index: number) => (
-                        <li 
-                          key={index} 
-                          className="text-[#121416] text-xs cursor-pointer hover:bg-[#f1f2f4] p-1 rounded"
-                          onClick={() => setWikiUrl(url)}
-                        >
-                          <span className="text-[#1a73e8] hover:underline">
-                            {url.split('/').pop()?.replace(/_/g, ' ') || url}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
-                )} */}
               </div>
               {/* CTA Section - always visible at bottom */}
               <div className="bg-[#f5f5f5]">
@@ -411,7 +421,7 @@ export default function TaskDetailPage() {
               </div>
             </div>
             {/* Right Pane: Wikipedia Article */}
-            <WikipediaEmbed wikiUrl={wikiUrl} highlightText={task.claim_text_span} />
+            <WikipediaEmbed wikiUrl={wikiUrl} highlightText={task.claim?.text_span} />
           </Split>
         </div>
       </div>

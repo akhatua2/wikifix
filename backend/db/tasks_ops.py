@@ -1,5 +1,5 @@
 from typing import List, Optional
-from sqlalchemy import select, ForeignKey, Column, String, DateTime, Boolean
+from sqlalchemy import select, ForeignKey, Column, String, DateTime, Boolean, Text
 from sqlalchemy.ext.asyncio import AsyncSession
 from .db import AsyncSessionLocal, Base
 from db.user_ops import User
@@ -17,20 +17,31 @@ class Task(Base):
     __table_args__ = {"extend_existing": True}
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    claim = Column(String, nullable=False)
-    claim_text_span = Column(String, nullable=True) 
+    
+    # Claim part
+    claim_sentence = Column(Text, nullable=False)
+    claim_context = Column(Text, nullable=True)
+    claim_document_title = Column(String, nullable=True)
+    claim_text_span = Column(Text, nullable=True)
     claim_url = Column(String, nullable=True)
-
-    context = Column(String, nullable=False, default="")
     
-    report = Column(String, nullable=True)
-    report_urls = Column(String, nullable=True, default="[]")  # Store as JSON string
+    # Evidence part
+    evidence_sentence = Column(Text, nullable=False)
+    evidence_context = Column(Text, nullable=True)  # This is the full evidence content
+    evidence_document_title = Column(String, nullable=True)
+    evidence_text_span = Column(Text, nullable=True)  # Specific span from evidence
+    evidence_url = Column(String, nullable=True)
     
+    # LLM analysis
+    llm_analysis = Column(Text, nullable=True)
+    contradiction_type = Column(String, nullable=True)
+    
+    # Task completion tracking
     status = Column(SQLAlchemyEnum(TaskStatus), nullable=False, default=TaskStatus.OPEN)
     completed_by = Column(String(36), ForeignKey("users.id"), nullable=True)
     
     user_agrees = Column(Boolean, nullable=True)
-    user_analysis = Column(String, nullable=True)
+    user_analysis = Column(Text, nullable=True)
     
     created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC))
     updated_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
@@ -115,3 +126,73 @@ async def complete_task(
         print(f"Task ID: {task_id}")
         print(f"User ID: {user_id}")
         return True
+
+async def create_task_from_anli_result(anli_result: dict) -> str:
+    """Create a new task from an ANLI result dictionary.
+    
+    Args:
+        anli_result: Dictionary containing the ANLI analysis result
+        
+    Returns:
+        The ID of the created task
+    """
+    async with AsyncSessionLocal() as session:
+        task = Task(
+            # Claim part
+            claim_sentence=anli_result.get("claim", ""),
+            claim_context=anli_result.get("claim_context", ""),
+            claim_document_title=anli_result.get("document_title", ""),
+            claim_text_span=anli_result.get("claim_text_span", ""),
+            claim_url=anli_result.get("document_url", ""),
+            
+            # Evidence part
+            evidence_sentence=anli_result.get("evidence_sentence", ""),
+            evidence_context=anli_result.get("evidence", ""),
+            evidence_document_title=anli_result.get("evidence_document_title", ""),
+            evidence_text_span="",  # Not provided in current JSON format
+            evidence_url=anli_result.get("evidence_url", ""),
+            
+            # LLM analysis
+            llm_analysis=anli_result.get("llm_report", {}).get("analysis", ""),
+            contradiction_type=anli_result.get("llm_report", {}).get("contradiction_type", ""),
+            
+            status=TaskStatus.OPEN
+        )
+        
+        session.add(task)
+        await session.commit()
+        await session.refresh(task)
+        
+        return task.id
+
+async def create_tasks_from_anli_json(anli_results: List[dict]) -> List[str]:
+    """Create multiple tasks from a list of ANLI results.
+    
+    Args:
+        anli_results: List of ANLI result dictionaries
+        
+    Returns:
+        List of created task IDs
+    """
+    task_ids = []
+    for result in anli_results:
+        task_id = await create_task_from_anli_result(result)
+        task_ids.append(task_id)
+    
+    return task_ids
+
+async def load_tasks_from_json_file(file_path: str) -> List[str]:
+    """Load tasks from an ANLI JSON file.
+    
+    Args:
+        file_path: Path to the JSON file containing ANLI results
+        
+    Returns:
+        List of created task IDs
+    """
+    import json
+    
+    with open(file_path, 'r', encoding='utf-8') as f:
+        anli_results = json.load(f)
+    
+    return await create_tasks_from_anli_json(anli_results)

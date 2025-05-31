@@ -206,7 +206,22 @@ async def get_tasks(current_user: User = Depends(get_current_user)):
     return [
         {
             "id": task.id,
-            "claim": task.claim,
+            "claim": {
+                "sentence": task.claim_sentence,
+                "context": task.claim_context,
+                "document_title": task.claim_document_title,
+                "text_span": task.claim_text_span,
+                "url": task.claim_url
+            },
+            "evidence": {
+                "sentence": task.evidence_sentence,
+                "context": task.evidence_context,
+                "document_title": task.evidence_document_title,
+                "text_span": task.evidence_text_span,
+                "url": task.evidence_url
+            },
+            "llm_analysis": task.llm_analysis,
+            "contradiction_type": task.contradiction_type,
             "topic": "Wikipedia Fact Check",
             "difficulty": "Medium",
             "status": task.status.value,
@@ -220,17 +235,30 @@ async def get_random_task():
     """Get a random open task - simplified for debugging."""
     print("=== SIMPLIFIED RANDOM TASK ENDPOINT CALLED ===")
     task = await get_random_open_task()
+    if not task:
+        raise HTTPException(status_code=404, detail="No open tasks available")
+    
     return {
         "id": task.id,
-        "claim": task.claim,
+        "claim": {
+            "sentence": task.claim_sentence,
+            "context": task.claim_context,
+            "document_title": task.claim_document_title,
+            "text_span": task.claim_text_span,
+            "url": task.claim_url
+        },
+        "evidence": {
+            "sentence": task.evidence_sentence,
+            "context": task.evidence_context,
+            "document_title": task.evidence_document_title,
+            "text_span": task.evidence_text_span,
+            "url": task.evidence_url
+        },
+        "llm_analysis": task.llm_analysis,
+        "contradiction_type": task.contradiction_type,
         "topic": "Wikipedia Fact Check",
         "difficulty": "Medium",
         "status": task.status.value,
-        "context": task.context,
-        "claim_text_span": task.claim_text_span,
-        "claim_url": task.claim_url,
-        "report": task.report,
-        "report_urls": task.report_urls,
         "xp": 25
     }
 
@@ -245,15 +273,25 @@ async def get_task_by_id(task_id: str, current_user: User = Depends(get_current_
         raise HTTPException(status_code=404, detail="Task not found")
     return {
         "id": task.id,
-        "claim": task.claim,
+        "claim": {
+            "sentence": task.claim_sentence,
+            "context": task.claim_context,
+            "document_title": task.claim_document_title,
+            "text_span": task.claim_text_span,
+            "url": task.claim_url
+        },
+        "evidence": {
+            "sentence": task.evidence_sentence,
+            "context": task.evidence_context,
+            "document_title": task.evidence_document_title,
+            "text_span": task.evidence_text_span,
+            "url": task.evidence_url
+        },
+        "llm_analysis": task.llm_analysis,
+        "contradiction_type": task.contradiction_type,
         "topic": "Wikipedia Fact Check",
         "difficulty": "Medium",
         "status": task.status.value,
-        "context": task.context,
-        "claim_text_span": task.claim_text_span,
-        "claim_url": task.claim_url,
-        "report": task.report,
-        "report_urls": task.report_urls,
         "xp": 25
     }
 
@@ -372,12 +410,22 @@ async def get_user_completed_tasks_list(
     return [
         {
             "id": task.id,
-            "claim": task.claim,
-            "claim_text_span": task.claim_text_span,
-            "claim_url": task.claim_url,
-            "context": task.context,
-            "report": task.report,
-            "report_urls": task.report_urls,
+            "claim": {
+                "sentence": task.claim_sentence,
+                "context": task.claim_context,
+                "document_title": task.claim_document_title,
+                "text_span": task.claim_text_span,
+                "url": task.claim_url
+            },
+            "evidence": {
+                "sentence": task.evidence_sentence,
+                "context": task.evidence_context,
+                "document_title": task.evidence_document_title,
+                "text_span": task.evidence_text_span,
+                "url": task.evidence_url
+            },
+            "llm_analysis": task.llm_analysis,
+            "contradiction_type": task.contradiction_type,
             "agrees_with_claim": task.user_agrees,
             "analysis": task.user_analysis,
             "completed_at": task.updated_at.isoformat(),
