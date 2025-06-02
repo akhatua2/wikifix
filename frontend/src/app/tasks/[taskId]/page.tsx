@@ -43,6 +43,8 @@ export default function TaskDetailPage() {
     height: 0
   });
   const [user, setUser] = useState<User | null>(null);
+  const [claimExpanded, setClaimExpanded] = useState(false);
+  const [evidenceExpanded, setEvidenceExpanded] = useState(false);
   const analysisRef = useRef<HTMLDivElement>(null);
 
   // Prevent body scrolling
@@ -302,50 +304,105 @@ export default function TaskDetailPage() {
               {/* Scrollable content above CTA */}
               <div className="flex-1 min-h-0 overflow-y-auto">
                 {/* Claim Section */}
-                <section
-                  className="bg-[#f5f5f5] rounded-xl p-4 mb-4 cursor-pointer hover:bg-[#f1f2f4] transition-colors"
-                  onClick={() => task.claim?.url && setWikiUrl(task.claim.url)}
-                  title={task.claim?.url ? `Show Wikipedia article in viewer` : ''}
-                >
-                  <div className="mb-2">
-                    <h2 className="text-lg font-bold text-gray-900 mb-2">Claim</h2>
-                    <p className="text-xl font-semibold text-gray-900 mb-2">{task.claim?.sentence || 'No claim provided'}</p>
-                    {task.claim?.text_span && (
-                      <p className="text-sm text-gray-600 italic">&quot;{task.claim.text_span}&quot;</p>
-                    )}
-                    {task.claim?.context && (
-                      <div className="mt-3">
-                        <h3 className="text-sm font-semibold text-gray-700 mb-1">Context:</h3>
-                        <p className="text-sm text-gray-600">{task.claim.context}</p>
-                      </div>
-                    )}
-                    {task.claim?.document_title && (
-                      <p className="text-sm text-blue-600 mt-2">From: {task.claim.document_title}</p>
-                    )}
+                <section className="bg-[#f5f5f5] rounded-xl p-4 mb-4">
+                  <div 
+                    className="flex items-center justify-between cursor-pointer hover:bg-[#f1f2f4] transition-colors rounded-lg p-2 -m-2"
+                    onClick={() => task.claim?.url && setWikiUrl(task.claim.url)}
+                    title={task.claim?.url ? `Show Wikipedia article in viewer` : ''}
+                  >
+                    <h2 className="text-lg font-bold text-gray-900 flex-1 pr-2">{task.claim?.sentence || 'No claim provided'}</h2>
+                    <button
+                      className="p-2 hover:bg-gray-300 rounded-full transition-colors flex-shrink-0 bg-gray-200"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setClaimExpanded(!claimExpanded);
+                      }}
+                      aria-label={claimExpanded ? "Collapse claim details" : "Expand claim details"}
+                    >
+                      <svg 
+                        className={`w-4 h-4 transition-transform text-gray-700 ${claimExpanded ? 'rotate-180' : ''}`} 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                        strokeWidth="2.5"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
                   </div>
+                  {claimExpanded && (
+                    <div className="mt-3 animate-in slide-in-from-top-2 duration-200">
+                      {task.claim?.text_span && (
+                        <p className="text-sm text-gray-600 italic mb-3">&quot;{task.claim.text_span}&quot;</p>
+                      )}
+                      {task.claim?.context && (
+                        <div className="mt-3">
+                          <h3 className="text-sm font-semibold text-gray-700 mb-1">Context:</h3>
+                          <p className="text-sm text-gray-600">{task.claim.context}</p>
+                        </div>
+                      )}
+                      {task.claim?.document_title && (
+                        <p className="text-sm text-blue-600 mt-2">From: {task.claim.document_title}</p>
+                      )}
+                    </div>
+                  )}
                 </section>
 
-                {/* Evidence Section */}
-                <section
-                  className="bg-[#f5f5f5] rounded-xl p-4 mb-4 cursor-pointer hover:bg-[#f1f2f4] transition-colors"
-                  onClick={() => task.evidence?.url && setWikiUrl(task.evidence.url)}
-                  title={task.evidence?.url ? `Show evidence article in viewer` : ''}
-                >
-                  <div className="mb-2">
-                    <h2 className="text-lg font-bold text-gray-900 mb-2">Evidence</h2>
-                    {task.evidence?.sentence && (
-                      <p className="text-lg font-semibold text-gray-900 mb-2">&quot;{task.evidence.sentence}&quot;</p>
-                    )}
-                    {task.evidence?.context && (
-                      <div className="mt-3">
-                        <h3 className="text-sm font-semibold text-gray-700 mb-1">Full Evidence:</h3>
-                        <p className="text-sm text-gray-600">{task.evidence.context.substring(0, 500)}...</p>
-                      </div>
-                    )}
-                    {task.evidence?.document_title && (
-                      <p className="text-sm text-blue-600 mt-2">From: {task.evidence.document_title}</p>
-                    )}
+                {/* Relationship Indicator */}
+                <div className="flex items-center justify-center my-4">
+                  <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2">
+                    <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                    <p className="text-sm font-medium text-amber-800">
+                      This sentence is <span className="font-bold">inconsistent</span> with this sentence
+                    </p>
+                    <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                    </svg>
                   </div>
+                </div>
+
+                {/* Evidence Section */}
+                <section className="bg-[#f5f5f5] rounded-xl p-4 mb-4">
+                  <div 
+                    className="flex items-center justify-between cursor-pointer hover:bg-[#f1f2f4] transition-colors rounded-lg p-2 -m-2"
+                    onClick={() => task.evidence?.url && setWikiUrl(task.evidence.url)}
+                    title={task.evidence?.url ? `Show evidence article in viewer` : ''}
+                  >
+                    <h2 className="text-lg font-bold text-gray-900 flex-1 pr-2">{task.evidence?.sentence || 'No evidence provided'}</h2>
+                    <button
+                      className="p-2 hover:bg-gray-300 rounded-full transition-colors flex-shrink-0 bg-gray-200"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEvidenceExpanded(!evidenceExpanded);
+                      }}
+                      aria-label={evidenceExpanded ? "Collapse evidence details" : "Expand evidence details"}
+                    >
+                      <svg 
+                        className={`w-4 h-4 transition-transform text-gray-700 ${evidenceExpanded ? 'rotate-180' : ''}`} 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                        strokeWidth="2.5"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </div>
+                  {evidenceExpanded && (
+                    <div className="mt-3 animate-in slide-in-from-top-2 duration-200">
+                      {task.evidence?.context && (
+                        <div className="mt-3">
+                          <h3 className="text-sm font-semibold text-gray-700 mb-1">Full Evidence:</h3>
+                          <p className="text-sm text-gray-600">{task.evidence.context.substring(0, 500)}...</p>
+                        </div>
+                      )}
+                      {task.evidence?.document_title && (
+                        <p className="text-sm text-blue-600 mt-2">From: {task.evidence.document_title}</p>
+                      )}
+                    </div>
+                  )}
                 </section>
 
                 {/* Analysis Section */}
