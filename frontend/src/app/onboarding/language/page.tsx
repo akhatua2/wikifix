@@ -47,7 +47,7 @@ const languages = [
   { code: "yi", name: "Yiddish", flag: "https://d35aaqx5ub95lt.cloudfront.net/vendor/55bad151fa6a8d9e2376fc9697c671c8.svg" },
 ];
 
-const steps = ["Topics", "Language", "Finish"];
+const steps = ["Topics", "Language", "Username", "Finish"];
 
 export default function LanguageOnboarding() {
   const [selected, setSelected] = useState<string[]>([]);
@@ -100,7 +100,7 @@ export default function LanguageOnboarding() {
       total_selections: selected.length
     });
     
-    router.push('/onboarding/finish');
+    router.push('/onboarding/username');
   };
 
   // Load saved languages on mount

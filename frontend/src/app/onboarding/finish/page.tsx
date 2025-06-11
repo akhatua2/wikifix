@@ -41,14 +41,17 @@ export default function FinishOnboarding() {
         // Get interests from localStorage
         const topics = JSON.parse(localStorage.getItem("wikifacts_topics") || "[]");
         const languages = JSON.parse(localStorage.getItem("wikifacts_languages") || "[]");
+        const wikipediaUsername = localStorage.getItem("wikifacts_wikipedia_username");
 
         // Track onboarding completion attempt
         trackAction('onboarding_save_attempt', {
           user_id: userData.id,
           selected_topics: topics,
           selected_languages: languages,
+          wikipedia_username: wikipediaUsername,
           total_topics: topics.length,
-          total_languages: languages.length
+          total_languages: languages.length,
+          has_wikipedia_account: !!wikipediaUsername
         });
 
         // Save to backend
@@ -60,7 +63,8 @@ export default function FinishOnboarding() {
           },
           body: JSON.stringify({
             topics,
-            languages
+            languages,
+            wikipedia_username: wikipediaUsername
           })
         });
 
@@ -73,13 +77,16 @@ export default function FinishOnboarding() {
           user_id: userData.id,
           selected_topics: topics,
           selected_languages: languages,
+          wikipedia_username: wikipediaUsername,
           total_topics: topics.length,
-          total_languages: languages.length
+          total_languages: languages.length,
+          has_wikipedia_account: !!wikipediaUsername
         });
 
         // Clear onboarding data from localStorage
         localStorage.removeItem("wikifacts_topics");
         localStorage.removeItem("wikifacts_languages");
+        localStorage.removeItem("wikifacts_wikipedia_username");
 
         // Do not auto-redirect. Just set a success state.
         setSuccess(true);

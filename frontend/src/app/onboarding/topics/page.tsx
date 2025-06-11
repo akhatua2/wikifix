@@ -15,7 +15,7 @@ const topics = [
   { key: "geography", name: "Geography", icon: "/geography.png" },
 ];
 
-const steps = ["Topics", "Language", "Finish"];
+const steps = ["Topics", "Language", "Username", "Finish"];
 
 export default function TopicsOnboarding() {
   const [selected, setSelected] = useState<string[]>([]);
