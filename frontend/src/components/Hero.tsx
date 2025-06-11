@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAnalytics } from '@/hooks/useAnalytics';
 import ImpactSection from './ImpactSection';
 import Image from 'next/image';
 
@@ -16,17 +17,30 @@ export default function Hero() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
+  const { trackClick, trackAction, trackPage } = useAnalytics();
   const router = useRouter();
 
   useEffect(() => {
+    // Track page view
+    trackPage('home');
+    
     const userData = JSON.parse(localStorage.getItem("wikifacts_user") || "null");
     setIsLoggedIn(!!userData);
     if (userData?.name) {
       // Extract first name from full name
       const firstName = userData.name.split(' ')[0];
       setUserName(firstName);
+      
+      // Track returning user view
+      trackAction('returning_user_home_view', {
+        user_id: userData.id,
+        user_name: firstName
+      });
+    } else {
+      // Track new visitor
+      trackAction('new_visitor_home_view', {});
     }
-  }, []);
+  }, [trackPage, trackAction]);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -48,9 +62,23 @@ export default function Hero() {
 
   const handleStartContributing = () => {
     if (isLoggedIn) {
+      // Track logged in user starting task
+      trackClick('start_new_task_button', {
+        source: 'hero',
+        user_logged_in: true,
+        user_name: userName
+      });
+      
       // If logged in, go to a new task
       router.push('/tasks');
     } else {
+      // Track login attempt from hero
+      trackClick('start_contributing_button', {
+        source: 'hero',
+        user_logged_in: false,
+        action: 'trigger_login'
+      });
+      
       // If not logged in, trigger Google login
       const width = 500;
       const height = 600;
@@ -70,11 +98,29 @@ export default function Hero() {
           if (userData && userData.token) {
             localStorage.setItem('wikifacts_user', JSON.stringify(userData));
             setIsLoggedIn(true);
+            
+            // Track successful login from hero
+            trackAction('login_success_from_hero', {
+              user_id: userData.id,
+              email: userData.email,
+              source: 'hero_start_contributing'
+            });
+            
             router.push('/tasks/new');
           }
         }
       });
     }
+  };
+
+  const handleLearnMore = () => {
+    trackClick('learn_how_it_works_button', {
+      source: 'hero',
+      user_logged_in: isLoggedIn,
+      user_name: userName
+    });
+    
+    router.push('/about');
   };
 
   // Calculate progress percentage (assuming 100 is the goal)
@@ -137,7 +183,7 @@ export default function Hero() {
               {isLoggedIn ? 'Start New Task' : 'Start Contributing'}
             </button>
             <button 
-              onClick={() => router.push('/about')}
+              onClick={handleLearnMore}
               className="bg-white border border-[#121416] text-[#121416] font-semibold rounded-xl px-7 py-3 text-base hover:bg-[#f1f2f4] transition"
             >
               Learn How It Works

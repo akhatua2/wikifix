@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAnalytics } from '@/hooks/useAnalytics';
 import Image from 'next/image';
 
 const topics = [
@@ -20,13 +21,28 @@ export default function TopicsOnboarding() {
   const [selected, setSelected] = useState<string[]>([]);
   const [otherTopics, setOtherTopics] = useState("");
   const [customTopics, setCustomTopics] = useState<string[]>([]);
+  const { trackClick, trackSelect, trackInputDebounced, trackPage, trackAction } = useAnalytics();
   const router = useRouter();
 
+  // Track page view on mount
+  useEffect(() => {
+    trackPage('onboarding/topics');
+  }, [trackPage]);
+
   const toggleTopic = (key: string) => {
+    const wasSelected = selected.includes(key);
+    
     setSelected((prev) => {
       const newSelected = prev.includes(key) 
         ? prev.filter((k) => k !== key) 
         : [...prev, key];
+      
+      // Track topic selection/deselection
+      trackSelect('onboarding_topic', key, {
+        action: wasSelected ? 'deselect' : 'select',
+        total_selected: newSelected.length,
+        step: 'topics_onboarding'
+      });
       
       // Save to localStorage
       localStorage.setItem("wikifacts_topics", JSON.stringify([...newSelected, ...customTopics]));
@@ -42,6 +58,15 @@ export default function TopicsOnboarding() {
       if (topic && !customTopics.includes(topic)) {
         const newCustomTopics = [...customTopics, topic];
         setCustomTopics(newCustomTopics);
+        
+        // Track custom topic addition
+        trackAction('custom_topic_added', {
+          custom_topic: topic,
+          total_custom_topics: newCustomTopics.length,
+          total_selected_topics: selected.length,
+          step: 'topics_onboarding'
+        });
+        
         // Save to localStorage
         localStorage.setItem("wikifacts_topics", JSON.stringify([...selected, ...newCustomTopics]));
         setOtherTopics("");
@@ -52,8 +77,40 @@ export default function TopicsOnboarding() {
   const removeCustomTopic = (topic: string) => {
     const newCustomTopics = customTopics.filter(t => t !== topic);
     setCustomTopics(newCustomTopics);
+    
+    // Track custom topic removal
+    trackAction('custom_topic_removed', {
+      removed_topic: topic,
+      remaining_custom_topics: newCustomTopics.length,
+      step: 'topics_onboarding'
+    });
+    
     // Save to localStorage
     localStorage.setItem("wikifacts_topics", JSON.stringify([...selected, ...newCustomTopics]));
+  };
+
+  // Handle text input with debounced tracking
+  const handleTopicInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setOtherTopics(value);
+    
+    // Track input with debouncing
+    trackInputDebounced('custom_topic_input', value, {
+      step: 'topics_onboarding',
+      has_selections: selected.length > 0
+    });
+  };
+
+  // Handle navigation with analytics
+  const handleNext = () => {
+    trackClick('onboarding_next_button', {
+      step: 'topics',
+      selected_topics: selected,
+      custom_topics: customTopics,
+      total_selections: selected.length + customTopics.length
+    });
+    
+    router.push('/onboarding/language');
   };
 
   // Load saved topics on mount
@@ -118,7 +175,7 @@ export default function TopicsOnboarding() {
             rows={2}
             placeholder="Type a topic and press Enter to add it..."
             value={otherTopics}
-            onChange={e => setOtherTopics(e.target.value)}
+            onChange={handleTopicInputChange}
             onKeyPress={handleKeyPress}
           />
           {customTopics.length > 0 && (
@@ -158,7 +215,7 @@ export default function TopicsOnboarding() {
         className="fixed right-4 top-1/2 transform -translate-y-1/2 bg-[#1cb760] text-white rounded-full shadow p-3 flex items-center justify-center border border-[#1cb760] hover:bg-[#169c4a] disabled:opacity-50 z-50"
         aria-label="Next"
         disabled={selected.length === 0}
-        onClick={() => router.push('/onboarding/language')}
+        onClick={handleNext}
       >
         <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />

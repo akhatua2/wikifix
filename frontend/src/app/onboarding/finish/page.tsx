@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAnalytics } from '@/hooks/useAnalytics';
 import dynamic from "next/dynamic";
 
 const ReactConfetti = dynamic(() => import("react-confetti"), { ssr: false });
@@ -8,6 +9,8 @@ const ReactConfetti = dynamic(() => import("react-confetti"), { ssr: false });
 export default function FinishOnboarding() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const { trackClick, trackAction, trackPage } = useAnalytics();
   const router = useRouter();
   const [windowSize, setWindowSize] = React.useState({ width: 0, height: 0 });
 
@@ -17,6 +20,11 @@ export default function FinishOnboarding() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // Track page view on mount
+  useEffect(() => {
+    trackPage('onboarding/finish');
+  }, [trackPage]);
 
   useEffect(() => {
     const saveInterests = async () => {
@@ -33,6 +41,15 @@ export default function FinishOnboarding() {
         // Get interests from localStorage
         const topics = JSON.parse(localStorage.getItem("wikifacts_topics") || "[]");
         const languages = JSON.parse(localStorage.getItem("wikifacts_languages") || "[]");
+
+        // Track onboarding completion attempt
+        trackAction('onboarding_save_attempt', {
+          user_id: userData.id,
+          selected_topics: topics,
+          selected_languages: languages,
+          total_topics: topics.length,
+          total_languages: languages.length
+        });
 
         // Save to backend
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${userData.id}/interests`, {
@@ -51,6 +68,15 @@ export default function FinishOnboarding() {
           throw new Error("Failed to save interests");
         }
 
+        // Track successful onboarding completion
+        trackAction('onboarding_completed', {
+          user_id: userData.id,
+          selected_topics: topics,
+          selected_languages: languages,
+          total_topics: topics.length,
+          total_languages: languages.length
+        });
+
         // Clear onboarding data from localStorage
         localStorage.removeItem("wikifacts_topics");
         localStorage.removeItem("wikifacts_languages");
@@ -59,16 +85,28 @@ export default function FinishOnboarding() {
         setSuccess(true);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
+        
+        // Track onboarding failure
+        trackAction('onboarding_save_failed', {
+          error: err instanceof Error ? err.message : "Unknown error"
+        });
       } finally {
         setIsSaving(false);
       }
     };
 
     saveInterests();
-  }, [router]);
+  }, [router, trackAction]);
 
-  // Add success state
-  const [success, setSuccess] = useState(false);
+  // Handle start task button click
+  const handleStartTask = () => {
+    trackClick('onboarding_start_task_button', {
+      onboarding_completed: success,
+      saving_state: isSaving ? 'saving' : 'complete'
+    });
+    
+    router.push('/tasks');
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#f6f6f6] px-4 py-8 relative overflow-hidden">
@@ -82,7 +120,7 @@ export default function FinishOnboarding() {
         </p>
         <button
           className="bg-[#1cb760] text-white px-10 py-4 rounded-lg font-bold text-lg hover:bg-[#169c4a] transition-colors shadow-lg"
-          onClick={() => router.push('/tasks')}
+          onClick={handleStartTask}
           disabled={isSaving}
         >
           {isSaving ? "Saving..." : "Start working on a task"}

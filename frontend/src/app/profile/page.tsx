@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-
+import { useAnalytics } from '@/hooks/useAnalytics';
 import Image from 'next/image';
 
 interface User {
@@ -118,6 +118,7 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [userInterests, setUserInterests] = useState<{ topics: string[]; languages: string[] }>({ topics: [], languages: [] });
   const [referralInfo, setReferralInfo] = useState<ReferralInfo | null>(null);
+  const { trackClick, trackAction, trackPage } = useAnalytics();
   const router = useRouter();
 
   useEffect(() => {
@@ -128,7 +129,13 @@ export default function ProfilePage() {
       return;
     }
     setUser(userData);
-  }, [router]);
+    
+    // Track profile page view
+    trackPage('profile', {
+      user_id: userData.id,
+      user_email: userData.email
+    });
+  }, [router, trackPage]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -215,6 +222,42 @@ export default function ProfilePage() {
     fetchInterests();
   }, [user]);
 
+  // Handle referral link copy with analytics
+  const handleReferralCopy = async () => {
+    trackClick('referral_copy_button', {
+      user_id: user?.id,
+      referral_code: referralInfo?.referral_code,
+      source: 'profile_page'
+    });
+
+    if (referralInfo?.referral_link) {
+      try {
+        await navigator.clipboard.writeText(referralInfo.referral_link);
+        
+        // Track successful copy
+        trackAction('referral_link_copied', {
+          user_id: user?.id,
+          referral_code: referralInfo.referral_code,
+          referral_link: referralInfo.referral_link
+        });
+        
+        // Show feedback
+        const button = document.activeElement as HTMLButtonElement;
+        const originalText = button.textContent;
+        button.textContent = 'Copied!';
+        setTimeout(() => {
+          button.textContent = originalText;
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+        trackAction('referral_copy_failed', {
+          user_id: user?.id,
+          error: err instanceof Error ? err.message : 'Unknown error'
+        });
+      }
+    }
+  };
+
   if (!mounted || !user) {
     return null;
   }
@@ -255,22 +298,7 @@ export default function ProfilePage() {
                     </p>
                     <div className="relative group">
                       <button
-                        onClick={async () => {
-                          if (referralInfo?.referral_link) {
-                            try {
-                              await navigator.clipboard.writeText(referralInfo.referral_link);
-                              // Show feedback
-                              const button = document.activeElement as HTMLButtonElement;
-                              const originalText = button.textContent;
-                              button.textContent = 'Copied!';
-                              setTimeout(() => {
-                                button.textContent = originalText;
-                              }, 2000);
-                            } catch (err) {
-                              console.error('Failed to copy:', err);
-                            }
-                          }
-                        }}
+                        onClick={handleReferralCopy}
                         className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
                       >
                         Invite Friends (+50 points)

@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAnalytics } from '@/hooks/useAnalytics';
 import Image from 'next/image';
 
 const languages = [
@@ -50,19 +51,56 @@ const steps = ["Topics", "Language", "Finish"];
 
 export default function LanguageOnboarding() {
   const [selected, setSelected] = useState<string[]>([]);
+  const { trackClick, trackSelect, trackPage } = useAnalytics();
   const router = useRouter();
 
+  // Track page view on mount
+  useEffect(() => {
+    trackPage('onboarding/language');
+  }, [trackPage]);
+
   const toggleLanguage = (code: string) => {
+    const wasSelected = selected.includes(code);
+    
     setSelected((prev) => {
       const newSelected = prev.includes(code) 
         ? prev.filter((c) => c !== code) 
         : [...prev, code];
+      
+      // Track language selection/deselection
+      trackSelect('onboarding_language', code, {
+        action: wasSelected ? 'deselect' : 'select',
+        language_name: languages.find(l => l.code === code)?.name,
+        total_selected: newSelected.length,
+        step: 'language_onboarding'
+      });
       
       // Save to localStorage
       localStorage.setItem("wikifacts_languages", JSON.stringify(newSelected));
       
       return newSelected;
     });
+  };
+
+  // Handle navigation with analytics
+  const handleBack = () => {
+    trackClick('onboarding_back_button', {
+      step: 'language',
+      selected_languages: selected,
+      total_selections: selected.length
+    });
+    
+    router.push('/onboarding/topics');
+  };
+
+  const handleNext = () => {
+    trackClick('onboarding_next_button', {
+      step: 'language',
+      selected_languages: selected,
+      total_selections: selected.length
+    });
+    
+    router.push('/onboarding/finish');
   };
 
   // Load saved languages on mount
@@ -113,7 +151,7 @@ export default function LanguageOnboarding() {
       <button
         className="fixed left-4 top-1/2 transform -translate-y-1/2 bg-white rounded-full shadow p-3 flex items-center justify-center border border-[#e5e5e5] hover:bg-[#f0f0f0] z-50"
         aria-label="Back"
-        onClick={() => router.push('/onboarding/topics')}
+        onClick={handleBack}
       >
         <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -123,7 +161,7 @@ export default function LanguageOnboarding() {
         className="fixed right-4 top-1/2 transform -translate-y-1/2 bg-[#1cb760] text-white rounded-full shadow p-3 flex items-center justify-center border border-[#1cb760] hover:bg-[#169c4a] disabled:opacity-50 z-50"
         aria-label="Next"
         disabled={selected.length === 0}
-        onClick={() => router.push('/onboarding/finish')}
+        onClick={handleNext}
       >
         <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />

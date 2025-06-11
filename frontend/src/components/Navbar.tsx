@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
 
@@ -22,6 +23,7 @@ export default function Navbar() {
   const [userRank, setUserRank] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const { trackClick, trackAction } = useAnalytics();
 
   // Handle mounting state
   useEffect(() => {
@@ -115,6 +117,11 @@ export default function Navbar() {
   }, [user]);
 
   const handleGoogleLogin = () => {
+    trackClick('google_login_button', { 
+      source: 'navbar',
+      current_page: pathname 
+    });
+
     const popup = window.open(
       `${API_URL}/auth/google/login`,
       "googleLogin",
@@ -123,6 +130,7 @@ export default function Navbar() {
   
     if (!popup) {
       alert('Popup blocked. Please allow popups for this site.');
+      trackAction('login_popup_blocked', { source: 'navbar' });
       return;
     }
   
@@ -140,6 +148,14 @@ export default function Navbar() {
         localStorage.setItem("wikifacts_user", JSON.stringify(event.data));
         setUser(event.data);
         
+        // Track successful login
+        trackAction('login_success', {
+          user_id: event.data.id,
+          email: event.data.email,
+          source: 'navbar',
+          needs_onboarding: event.data.needs_onboarding
+        });
+        
         // Redirect if user needs onboarding
         if (event.data.needs_onboarding) {
           window.location.href = '/onboarding/topics';
@@ -150,6 +166,10 @@ export default function Navbar() {
       } else if (event.data?.error) {
         console.error('OAuth error:', event.data.error);
         alert('Login failed. Please try again.');
+        trackAction('login_failed', { 
+          error: event.data.error,
+          source: 'navbar' 
+        });
         cleanup();
       }
     };
@@ -186,6 +206,11 @@ export default function Navbar() {
   
 
   const handleLogout = async () => {
+    trackClick('logout_button', { 
+      user_id: user?.id,
+      current_page: pathname 
+    });
+
     try {
       if (user?.token) {
         await fetch(`${API_URL}/auth/logout`, { 
@@ -195,8 +220,17 @@ export default function Navbar() {
           }
         });
       }
+      
+      trackAction('logout_success', { 
+        user_id: user?.id,
+        completed_tasks: completedTasks 
+      });
     } catch (error) {
       console.error('Logout request failed:', error);
+      trackAction('logout_failed', { 
+        user_id: user?.id,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     } finally {
       // Always clear local state and storage regardless of server response
       localStorage.removeItem("wikifacts_user");
@@ -206,6 +240,35 @@ export default function Navbar() {
   };
 
   const isActive = (path: string) => pathname === path;
+
+  // Track navigation clicks
+  const handleNavClick = (navItem: string, href: string) => {
+    trackClick('nav_link', {
+      nav_item: navItem,
+      destination: href,
+      current_page: pathname,
+      user_id: user?.id
+    });
+  };
+
+  // Track profile image click
+  const handleProfileClick = () => {
+    trackClick('profile_link', {
+      user_id: user?.id,
+      current_page: pathname,
+      user_rank: userRank
+    });
+  };
+
+  // Track dropdown toggle
+  const handleDropdownToggle = () => {
+    const newState = !dropdownOpen;
+    setDropdownOpen(newState);
+    trackClick('profile_dropdown_toggle', {
+      user_id: user?.id,
+      action: newState ? 'open' : 'close'
+    });
+  };
 
   // Don't render anything until mounted to prevent hydration mismatch
   if (!mounted) {
@@ -243,6 +306,7 @@ export default function Navbar() {
                 isActive('/') ? 'text-[#121416]' : 'text-[#60758a] hover:text-[#121416]'
               }`} 
               href="/"
+              onClick={() => handleNavClick('home', '/')}
             >
               Home
             </Link>
@@ -252,6 +316,7 @@ export default function Navbar() {
                   isActive('/tasks') ? 'text-[#121416]' : 'text-[#60758a] hover:text-[#121416]'
                 }`} 
                 href="/tasks"
+                onClick={() => handleNavClick('tasks', '/tasks')}
               >
                 Tasks
               </Link>
@@ -261,6 +326,7 @@ export default function Navbar() {
                 isActive('/about') ? 'text-[#121416]' : 'text-[#60758a] hover:text-[#121416]'
               }`} 
               href="/about"
+              onClick={() => handleNavClick('about', '/about')}
             >
               About
             </Link>
@@ -269,6 +335,7 @@ export default function Navbar() {
                 isActive('/leaderboard') ? 'text-[#121416]' : 'text-[#60758a] hover:text-[#121416]'
               }`} 
               href="/leaderboard"
+              onClick={() => handleNavClick('leaderboard', '/leaderboard')}
             >
               Leaderboard
             </Link>
@@ -292,7 +359,7 @@ export default function Navbar() {
             {user ? (
               <div className="relative" ref={dropdownRef}>
                 <div className="flex items-center gap-2">
-                  <Link href="/profile" className="focus:outline-none relative">
+                  <Link href="/profile" className="focus:outline-none relative" onClick={handleProfileClick}>
                     {user.picture && (
                       <>
                         <Image 
@@ -316,7 +383,7 @@ export default function Navbar() {
                   </Link>
                   <button
                     className="flex items-center gap-2 focus:outline-none"
-                    onClick={() => setDropdownOpen((open) => !open)}
+                    onClick={handleDropdownToggle}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

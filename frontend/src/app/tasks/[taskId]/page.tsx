@@ -7,6 +7,7 @@ import TaskSkeleton from '@/components/TaskSkeleton';
 import dynamic from 'next/dynamic';
 import { useConfetti } from '@/contexts/ConfettiContext';
 import { useProgress } from '@/contexts/ProgressContext';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import Image from 'next/image';
 import { TaskData, fetchTask, submitTask, fetchRandomTask } from '@/types/task';
 
@@ -30,6 +31,7 @@ export default function TaskDetailPage() {
   const router = useRouter();
   const { showConfetti } = useConfetti();
   const { completedTasks, updateCompletedTasks } = useProgress();
+  const { trackClick, trackInputDebounced, trackSelect, trackTask, trackSubmit, trackSkip, trackPage } = useAnalytics();
   const taskId = params.taskId as string;
   const [task, setTask] = useState<TaskData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,6 +46,11 @@ export default function TaskDetailPage() {
   const [user, setUser] = useState<User | null>(null);
 
   const analysisRef = useRef<HTMLDivElement>(null);
+
+  // Track page view when component mounts
+  useEffect(() => {
+    trackPage(`/tasks/${taskId}`, { task_id: taskId });
+  }, [taskId, trackPage]);
 
   // Prevent body scrolling
   useEffect(() => {
@@ -87,6 +94,14 @@ export default function TaskDetailPage() {
         const data = await fetchTask(taskId, userData.token);
         setTask(data);
         setError(null);
+        
+        // Track successful task load
+        trackTask(taskId, {
+          user_id: userData.id,
+          claim_sentence: data.claim?.sentence,
+          evidence_sentence: data.evidence?.sentence,
+          contradiction_type: data.contradiction_type
+        });
       } catch (error) {
         console.error('Error fetching task details:', error);
         setError('Failed to load task details. Please try again later.');
@@ -98,18 +113,18 @@ export default function TaskDetailPage() {
     if (taskId) {
       loadTask();
     }
-  }, [taskId]);
-
-
+  }, [taskId, trackTask]);
 
   const handleSubmit = async () => {
     if (!selectedOption) {
       setError('Please select whether you agree or disagree');
+      trackClick('submit_attempt_without_selection', { task_id: taskId });
       return;
     }
 
     if (!explanation.trim()) {
       setError('Please provide your reasoning or feedback');
+      trackClick('submit_attempt_without_explanation', { task_id: taskId });
       return;
     }
 
@@ -120,6 +135,13 @@ export default function TaskDetailPage() {
         setError('Please log in to submit tasks');
         return;
       }
+
+      // Track submission attempt
+      trackSubmit(taskId, selectedOption === 'agree', explanation.length, {
+        user_id: userData.id,
+        explanation_word_count: explanation.split(' ').length,
+        time_spent_on_task: Date.now() - (performance.now() - performance.timeOrigin)
+      });
 
       // Submit the current task
       await submitTask(taskId, {
@@ -171,6 +193,14 @@ export default function TaskDetailPage() {
 
   const handleSkip = async () => {
     try {
+      // Track skip action
+      trackSkip(taskId, {
+        user_id: user?.id,
+        had_selection: selectedOption !== null,
+        had_explanation: explanation.trim().length > 0,
+        explanation_length: explanation.length
+      });
+
       const userData = JSON.parse(localStorage.getItem("wikifacts_user") || "null");
       if (!userData?.token) {
         setError('Please log in to skip tasks');
@@ -192,6 +222,31 @@ export default function TaskDetailPage() {
       console.error('Error skipping task:', error);
       setError('Failed to skip task. Please try again.');
     }
+  };
+
+  // Handle option selection with analytics
+  const handleOptionSelect = (option: 'agree' | 'disagree') => {
+    const newSelection = selectedOption === option ? null : option;
+    setSelectedOption(newSelection);
+    
+    trackSelect('task_opinion', newSelection || 'deselected', {
+      task_id: taskId,
+      user_id: user?.id,
+      previous_selection: selectedOption
+    });
+  };
+
+  // Handle explanation input with analytics
+  const handleExplanationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setExplanation(value);
+    
+    // Track input with debouncing
+    trackInputDebounced('explanation', value, {
+      task_id: taskId,
+      user_id: user?.id,
+      word_count: value.split(' ').filter(word => word.length > 0).length
+    });
   };
 
   if (loading) {
@@ -360,7 +415,10 @@ export default function TaskDetailPage() {
                       ? 'bg-[#1ca152] text-white hover:bg-[#178a41]'
                       : 'bg-[#a8e6cf] text-gray-900 hover:bg-[#8ed3b6]'
                   }`}
-                  onClick={() => setSelectedOption(selectedOption === 'agree' ? null : 'agree')}
+                  onClick={() => {
+                    trackClick('agree_button', { task_id: taskId, user_id: user?.id });
+                    handleOptionSelect('agree');
+                  }}
                 >
                   Agree
                 </button>
@@ -370,7 +428,10 @@ export default function TaskDetailPage() {
                       ? 'bg-[#a52828] text-white hover:bg-[#7d1d1d]'
                       : 'bg-[#ffb3b3] text-gray-900 hover:bg-[#ff9b9b]'
                   }`}
-                  onClick={() => setSelectedOption(selectedOption === 'disagree' ? null : 'disagree')}
+                  onClick={() => {
+                    trackClick('disagree_button', { task_id: taskId, user_id: user?.id });
+                    handleOptionSelect('disagree');
+                  }}
                 >
                   Disagree
                 </button>
@@ -381,12 +442,15 @@ export default function TaskDetailPage() {
                 className="w-full rounded-lg border border-[#f1f2f4] p-2 text-sm text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-[#dce8f3]" 
                 placeholder="Provide your reasoning..."
                 value={explanation}
-                onChange={(e) => setExplanation(e.target.value)}
+                onChange={handleExplanationChange}
               />
               <div className="flex gap-2">
                 <button 
                   className="px-3 py-2 rounded-lg text-sm font-bold transition-colors bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  onClick={handleSkip}
+                  onClick={() => {
+                    trackClick('skip_button', { task_id: taskId, user_id: user?.id });
+                    handleSkip();
+                  }}
                 >
                   Skip
                 </button>
@@ -398,7 +462,15 @@ export default function TaskDetailPage() {
                         ? 'bg-[#dce8f3] text-gray-900 cursor-not-allowed'
                         : 'bg-[#1a73e8] text-white hover:bg-[#1557b0]'
                   }`}
-                  onClick={handleSubmit}
+                  onClick={() => {
+                    trackClick('submit_button', { 
+                      task_id: taskId, 
+                      user_id: user?.id,
+                      has_selection: selectedOption !== null,
+                      has_explanation: explanation.trim().length > 0
+                    });
+                    handleSubmit();
+                  }}
                   disabled={submitting || !selectedOption || !explanation.trim()}
                 >
                   {submitting ? 'Submitting...' : 'Submit'}
