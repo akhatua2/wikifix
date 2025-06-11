@@ -88,7 +88,7 @@ export default function WikipediaEmbed({ wikiUrl, highlightText }: WikipediaEmbe
         console.log('WikipediaEmbed: Iframe detected as loaded via contentDocument');
         return true;
       }
-    } catch (e) {
+    } catch {
       // Cross-origin restriction - this is expected for external URLs
     }
 
@@ -98,7 +98,7 @@ export default function WikipediaEmbed({ wikiUrl, highlightText }: WikipediaEmbe
         console.log('WikipediaEmbed: Iframe contentWindow exists, assuming loaded');
         return true;
       }
-    } catch (e) {
+    } catch {
       // Some browsers may restrict this too
     }
 
@@ -357,25 +357,7 @@ export default function WikipediaEmbed({ wikiUrl, highlightText }: WikipediaEmbe
       )}
 
       {/* Status indicator for local content */}
-      {isLocalUrl && !isLoading && !hasError && (
-        <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
-          <div className="px-3 py-1 bg-green-500/20 backdrop-blur-3xl rounded-lg border border-green-100/10 flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span className="text-xs text-green-800 font-medium">Local Copy</span>
-          </div>
-          
-          {/* Highlighting indicator with different styles for different match types */}
-          {hasHighlighting && (
-            <div className="px-3 py-1 backdrop-blur-3xl rounded-lg border flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full animate-pulse"></div>
-              <span className="text-xs font-medium">
-                {/* We can't easily determine the match type from the frontend, so we'll use a generic indicator */}
-                Text Highlighted
-              </span>
-            </div>
-          )}
-        </div>
-      )}
+
 
       {/* Content Area */}
       {!wikiUrl ? (
