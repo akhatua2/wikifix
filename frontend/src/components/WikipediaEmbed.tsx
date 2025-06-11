@@ -17,7 +17,13 @@ export default function WikipediaEmbed({ wikiUrl, highlightText }: WikipediaEmbe
   const getDisplayUrl = (url: string, text?: string) => {
     if (!url) return '';
     
-    // Check if it's a local API URL
+    // Check if it's a pre-highlighted API URL
+    if (url.startsWith('/api/wiki-highlighted/')) {
+      // Convert to full URL for iframe - these already contain highlighted content
+      return `${API_URL}${url}`;
+    }
+    
+    // Check if it's a regular local API URL
     if (url.startsWith('/api/wiki/')) {
       // Convert to full URL for iframe
       const fullLocalUrl = `${API_URL}${url}`;
@@ -41,6 +47,13 @@ export default function WikipediaEmbed({ wikiUrl, highlightText }: WikipediaEmbe
   };
 
   const getOpenInNewTabUrl = (url: string, text?: string) => {
+    // For pre-highlighted URLs, extract the original Wikipedia page and open it
+    if (url.startsWith('/api/wiki-highlighted/')) {
+      // For highlighted URLs, we can't easily extract the original URL since it's task-specific
+      // So we'll just return a generic Wikipedia link
+      return 'https://en.wikipedia.org';
+    }
+    
     // For local URLs, we want to open the original Wikipedia page in a new tab
     if (url.startsWith('/api/wiki/')) {
       // Extract page name from local URL

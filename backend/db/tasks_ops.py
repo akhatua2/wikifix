@@ -32,6 +32,10 @@ class Task(Base):
     evidence_text_span = Column(Text, nullable=True)  # Specific span from evidence
     evidence_url = Column(String, nullable=True)
     
+    # Pre-processed highlighted HTML content
+    claim_highlighted_html = Column(Text, nullable=True)  # Full HTML with highlighting for claim
+    evidence_highlighted_html = Column(Text, nullable=True)  # Full HTML with highlighting for evidence
+    
     # LLM analysis
     llm_analysis = Column(Text, nullable=True)
     contradiction_type = Column(String, nullable=True)
