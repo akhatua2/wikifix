@@ -285,11 +285,12 @@ export default function TaskDetailPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto w-full h-full py-5 min-h-0">
-        <div className="w-full h-full min-h-0">
+      <div className="max-w-7xl mx-auto w-full h-full py-5 min-h-0 flex flex-col">
+        {/* Wikipedia Embeds Side by Side */}
+        <div className="flex-1 min-h-0 mb-4">
           <Split
             className="flex h-full min-h-0 gap-2"
-            sizes={[40, 60]}
+            sizes={[50, 50]}
             minSize={300}
             direction="horizontal"
             gutterSize={2}
@@ -299,187 +300,97 @@ export default function TaskDetailPage() {
               cursor: 'col-resize'
             })}
           >
-            {/* Left Pane: Task Details (scrollable) */}
-            <div className="flex flex-col h-full min-h-0 pr-4 bg-[#f5f5f5]">
-              {/* Scrollable content above CTA */}
-              <div className="flex-1 min-h-0 overflow-y-auto">
-                {/* Claim Section */}
-                <section className="bg-[#f5f5f5] rounded-xl p-4 mb-4">
-                  <div 
-                    className="flex items-center justify-between cursor-pointer hover:bg-[#f1f2f4] transition-colors rounded-lg p-2 -m-2"
-                    onClick={() => task.claim?.url && setWikiUrl(task.claim.url)}
-                    title={task.claim?.url ? `Show Wikipedia article in viewer` : ''}
-                  >
-                    <h2 className="text-lg font-bold text-gray-900 flex-1 pr-2">{task.claim?.sentence || 'No claim provided'}</h2>
-                    <button
-                      className="p-2 hover:bg-gray-300 rounded-full transition-colors flex-shrink-0 bg-gray-200"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setClaimExpanded(!claimExpanded);
-                      }}
-                      aria-label={claimExpanded ? "Collapse claim details" : "Expand claim details"}
-                    >
-                      <svg 
-                        className={`w-4 h-4 transition-transform text-gray-700 ${claimExpanded ? 'rotate-180' : ''}`} 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                        strokeWidth="2.5"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                  </div>
-                  {claimExpanded && (
-                    <div className="mt-3 animate-in slide-in-from-top-2 duration-200">
-                      {task.claim?.text_span && (
-                        <p className="text-sm text-gray-600 italic mb-3">&quot;{task.claim.text_span}&quot;</p>
-                      )}
-                      {task.claim?.context && (
-                        <div className="mt-3">
-                          <h3 className="text-sm font-semibold text-gray-700 mb-1">Context:</h3>
-                          <p className="text-sm text-gray-600">{task.claim.context}</p>
-                        </div>
-                      )}
-                      {task.claim?.document_title && (
-                        <p className="text-sm text-blue-600 mt-2">From: {task.claim.document_title}</p>
-                      )}
-                    </div>
-                  )}
-                </section>
-
-                {/* Relationship Indicator */}
-                <div className="flex items-center justify-center my-4">
-                  <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2">
-                    <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                    </svg>
-                    <p className="text-sm font-medium text-amber-800">
-                      This sentence is <span className="font-bold">inconsistent</span> with this sentence
-                    </p>
-                    <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                    </svg>
-                  </div>
-                </div>
-
-                {/* Evidence Section */}
-                <section className="bg-[#f5f5f5] rounded-xl p-4 mb-4">
-                  <div 
-                    className="flex items-center justify-between cursor-pointer hover:bg-[#f1f2f4] transition-colors rounded-lg p-2 -m-2"
-                    onClick={() => task.evidence?.url && setWikiUrl(task.evidence.url)}
-                    title={task.evidence?.url ? `Show evidence article in viewer` : ''}
-                  >
-                    <h2 className="text-lg font-bold text-gray-900 flex-1 pr-2">{task.evidence?.sentence || 'No evidence provided'}</h2>
-                    <button
-                      className="p-2 hover:bg-gray-300 rounded-full transition-colors flex-shrink-0 bg-gray-200"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEvidenceExpanded(!evidenceExpanded);
-                      }}
-                      aria-label={evidenceExpanded ? "Collapse evidence details" : "Expand evidence details"}
-                    >
-                      <svg 
-                        className={`w-4 h-4 transition-transform text-gray-700 ${evidenceExpanded ? 'rotate-180' : ''}`} 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                        strokeWidth="2.5"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                  </div>
-                  {evidenceExpanded && (
-                    <div className="mt-3 animate-in slide-in-from-top-2 duration-200">
-                      {task.evidence?.context && (
-                        <div className="mt-3">
-                          <h3 className="text-sm font-semibold text-gray-700 mb-1">Full Evidence:</h3>
-                          <p className="text-sm text-gray-600">{task.evidence.context.substring(0, 500)}...</p>
-                        </div>
-                      )}
-                      {task.evidence?.document_title && (
-                        <p className="text-sm text-blue-600 mt-2">From: {task.evidence.document_title}</p>
-                      )}
-                    </div>
-                  )}
-                </section>
-
-                {/* Analysis Section */}
-                <section className="bg-[#f5f5f5] rounded-xl p-4 mb-4">
-                  <h2 className="text-lg font-bold text-gray-900 mb-3">LLM Analysis</h2>
-                  <div
-                    ref={analysisRef}
-                    className="text-base text-gray-800 llm-analysis-html"
-                    dangerouslySetInnerHTML={{ __html: task.llm_analysis || 'No analysis provided' }}
-                  />
-                  {task.contradiction_type && (
-                    <div className="mt-3 p-2 bg-red-50 rounded-lg">
-                      <p className="text-sm font-semibold text-red-800">Contradiction Type: {task.contradiction_type}</p>
-                    </div>
-                  )}
-                </section>
+            {/* Left Wikipedia: Claim */}
+            <div className="h-full relative">
+              <div className="absolute top-2 left-2 z-10 bg-blue-100 border border-blue-300 rounded px-2 py-1">
+                <span className="text-xs font-semibold text-blue-800">Claim Source</span>
               </div>
-              {/* CTA Section - always visible at bottom */}
-              <div className="bg-[#f5f5f5]">
-                <section className="bg-[#f5f5f5] rounded-xl p-4 flex flex-col gap-3 pb-0">
-                  <div className="flex gap-4 mb-2">
-                    <button 
-                      className={`flex-1 px-4 py-2 rounded-lg text-lg font-bold transition-colors ${
-                        selectedOption === 'agree' 
-                          ? 'bg-[#1ca152] text-white hover:bg-[#178a41]'
-                          : 'bg-[#a8e6cf] text-gray-900 hover:bg-[#8ed3b6] text-gray-900'
-                      }`}
-                      onClick={() => setSelectedOption(selectedOption === 'agree' ? null : 'agree')}
-                    >
-                      Agree
-                    </button>
-                    <button 
-                      className={`flex-1 px-4 py-2 rounded-lg text-lg font-bold transition-colors ${
-                        selectedOption === 'disagree' 
-                          ? 'bg-[#a52828] text-white hover:bg-[#7d1d1d]'
-                          : 'bg-[#ffb3b3] text-gray-900 hover:bg-[#ff9b9b] text-gray-900'
-                      }`}
-                      onClick={() => setSelectedOption(selectedOption === 'disagree' ? null : 'disagree')}
-                    >
-                      Disagree
-                    </button>
-                  </div>
-                  <textarea 
-                    id="explanation" 
-                    rows={3} 
-                    className="w-full rounded-lg border border-[#f1f2f4] p-2 text-base text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-[#dce8f3]" 
-                    placeholder="Provide your reasoning or feedback..."
-                    value={explanation}
-                    onChange={(e) => setExplanation(e.target.value)}
-                  />
-                  <div className="flex gap-3 justify-end">
-                    <button 
-                      className="px-4 py-2 rounded-lg text-lg font-bold transition-colors bg-gray-100 text-gray-600 hover:bg-gray-200"
-                      onClick={handleSkip}
-                    >
-                      Skip Task
-                    </button>
-                    <button 
-                      className={`px-4 py-2 rounded-lg text-lg font-bold transition-colors ${
-                        submitting 
-                          ? 'bg-[#dce8f3] text-[#60758a] cursor-not-allowed'
-                          : !selectedOption || !explanation.trim()
-                            ? 'bg-[#dce8f3] text-gray-900 cursor-not-allowed'
-                            : 'bg-[#1a73e8] text-white hover:bg-[#1557b0]'
-                      }`}
-                      onClick={handleSubmit}
-                      disabled={submitting || !selectedOption || !explanation.trim()}
-                    >
-                      {submitting ? 'Submitting...' : 'Submit Analysis'}
-                    </button>
-                  </div>
-                </section>
+              <WikipediaEmbed wikiUrl={task.claim?.url || ''} highlightText={task.claim?.text_span} />
+            </div>
+            
+            {/* Right Wikipedia: Evidence */}
+            <div className="h-full relative">
+              <div className="absolute top-2 left-2 z-10 bg-green-100 border border-green-300 rounded px-2 py-1">
+                <span className="text-xs font-semibold text-green-800">Evidence Source</span>
+              </div>
+              <WikipediaEmbed wikiUrl={task.evidence?.url || ''} highlightText={task.evidence?.sentence} />
+            </div>
+          </Split>
+        </div>
+
+        {/* Bottom Section: LLM Analysis and CTAs */}
+        <div className="flex gap-4">
+          {/* LLM Analysis */}
+          <div className="flex-1 bg-[#f5f5f5] rounded-xl p-4">
+            <h2 className="text-lg font-bold text-gray-900 mb-3">LLM Analysis</h2>
+            <div
+              ref={analysisRef}
+              className="text-base text-gray-800 llm-analysis-html max-h-32 overflow-y-auto"
+              dangerouslySetInnerHTML={{ __html: task.llm_analysis || 'No analysis provided' }}
+            />
+            {task.contradiction_type && (
+              <div className="mt-3 p-2 bg-red-50 rounded-lg">
+                <p className="text-sm font-semibold text-red-800">Contradiction Type: {task.contradiction_type}</p>
+              </div>
+            )}
+          </div>
+
+          {/* CTA Section */}
+          <div className="w-80 bg-[#f5f5f5] rounded-xl p-4">
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-3">
+                <button 
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-bold transition-colors ${
+                    selectedOption === 'agree' 
+                      ? 'bg-[#1ca152] text-white hover:bg-[#178a41]'
+                      : 'bg-[#a8e6cf] text-gray-900 hover:bg-[#8ed3b6]'
+                  }`}
+                  onClick={() => setSelectedOption(selectedOption === 'agree' ? null : 'agree')}
+                >
+                  Agree
+                </button>
+                <button 
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-bold transition-colors ${
+                    selectedOption === 'disagree' 
+                      ? 'bg-[#a52828] text-white hover:bg-[#7d1d1d]'
+                      : 'bg-[#ffb3b3] text-gray-900 hover:bg-[#ff9b9b]'
+                  }`}
+                  onClick={() => setSelectedOption(selectedOption === 'disagree' ? null : 'disagree')}
+                >
+                  Disagree
+                </button>
+              </div>
+              <textarea 
+                id="explanation" 
+                rows={3} 
+                className="w-full rounded-lg border border-[#f1f2f4] p-2 text-sm text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-[#dce8f3]" 
+                placeholder="Provide your reasoning..."
+                value={explanation}
+                onChange={(e) => setExplanation(e.target.value)}
+              />
+              <div className="flex gap-2">
+                <button 
+                  className="px-3 py-2 rounded-lg text-sm font-bold transition-colors bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  onClick={handleSkip}
+                >
+                  Skip
+                </button>
+                <button 
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-bold transition-colors ${
+                    submitting 
+                      ? 'bg-[#dce8f3] text-[#60758a] cursor-not-allowed'
+                      : !selectedOption || !explanation.trim()
+                        ? 'bg-[#dce8f3] text-gray-900 cursor-not-allowed'
+                        : 'bg-[#1a73e8] text-white hover:bg-[#1557b0]'
+                  }`}
+                  onClick={handleSubmit}
+                  disabled={submitting || !selectedOption || !explanation.trim()}
+                >
+                  {submitting ? 'Submitting...' : 'Submit'}
+                </button>
               </div>
             </div>
-            {/* Right Pane: Wikipedia Article */}
-            <WikipediaEmbed wikiUrl={wikiUrl} highlightText={task.claim?.text_span} />
-          </Split>
+          </div>
         </div>
       </div>
     </div>
