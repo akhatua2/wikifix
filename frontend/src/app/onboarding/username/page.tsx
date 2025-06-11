@@ -13,7 +13,6 @@ interface UsernameValidationResult {
 
 export default function UsernameOnboarding() {
   const [username, setUsername] = useState("");
-  const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] = useState<UsernameValidationResult | null>(null);
   const [skipWikipedia, setSkipWikipedia] = useState(false);
   const { trackClick, trackInputDebounced, trackPage, trackAction } = useAnalytics();
@@ -64,7 +63,7 @@ export default function UsernameOnboarding() {
           message: "Unable to verify this username" 
         };
       }
-    } catch (error) {
+    } catch (_error) { // eslint-disable-line @typescript-eslint/no-unused-vars
       return { 
         valid: false, 
         exists: false, 
@@ -88,10 +87,8 @@ export default function UsernameOnboarding() {
     // Validate after user stops typing
     if (value.trim()) {
       const timeoutId = setTimeout(async () => {
-        setIsValidating(true);
         const result = await validateUsername(value);
         setValidationResult(result);
-        setIsValidating(false);
         
         // Track validation result
         trackAction('username_validation', {
@@ -188,7 +185,7 @@ export default function UsernameOnboarding() {
       </div>
       
       <h1 className="text-[2rem] md:text-[2.5rem] font-extrabold mb-4 text-center text-black" style={{letterSpacing: '-0.02em'}}>
-        What's your Wikipedia username?
+        What&apos;s your Wikipedia username?
       </h1>
       
       <div className="w-full max-w-md mb-6">
@@ -236,7 +233,7 @@ export default function UsernameOnboarding() {
 
       {skipWikipedia && (
         <div className="text-center text-sm text-[#777] mb-8 max-w-md">
-          No problem! You can add this later if you'd like.
+          No problem! You can add this later if you&apos;d like.
         </div>
       )}
 
