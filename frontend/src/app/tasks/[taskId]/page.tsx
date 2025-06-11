@@ -9,7 +9,7 @@ import { useConfetti } from '@/contexts/ConfettiContext';
 import { useProgress } from '@/contexts/ProgressContext';
 import Image from 'next/image';
 import { TaskData, fetchTask, submitTask, fetchRandomTask } from '@/types/task';
-import WikipediaEmbed from '@/components/WikipediaEmbed';
+
 
 interface User {
   id: string;
@@ -196,27 +196,40 @@ export default function TaskDetailPage() {
 
   if (loading) {
     return (
-      <div className="relative flex h-screen flex-col bg-[#f5f5f5] overflow-hidden">
-        <div className="max-w-7xl mx-auto w-full h-full py-5">
-          <Split
-            className="flex h-full gap-2"
-            sizes={[40, 60]}
-            minSize={300}
-            direction="horizontal"
-            gutterSize={2}
-            gutterStyle={() => ({
-              backgroundColor: '#f1f2f4',
-              width: '2px',
-              cursor: 'col-resize'
-            })}
-          >
-            <div className="flex flex-col h-full overflow-y-auto pr-4 bg-[#f5f5f5]">
-              <TaskSkeleton />
+      <div className="relative flex flex-col h-screen min-h-0 bg-[#f5f5f5] overflow-hidden">
+        {/* Progress Bar and Profile Section */}
+        <div className="bg-[#f5f5f5] border-[#f1f2f4] py-3 px-10">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-2">
+              <h2 className="text-xl font-bold text-gray-900 leading-tight tracking-[-0.015em]">WikiFix</h2>
+            </Link>
+            <div className="flex-1 mx-8 flex items-center gap-2">
+              <div className="flex-1 h-2 bg-[#f1f2f4] rounded-full overflow-hidden">
+                <div
+                  className="h-2 bg-[#1ca152] rounded-full transition-all"
+                  style={{ width: `${Math.min(completedTasks, 100)}%` }}
+                ></div>
+              </div>
+              <span className="text-base font-semibold text-[#1ca152] whitespace-nowrap">{completedTasks} tasks completed</span>
             </div>
-            <div className="h-full w-full bg-[#f5f5f5] rounded-lg border border-[#f1f2f4] overflow-hidden">
-              <div className="animate-pulse h-full w-full bg-gray-200"></div>
-            </div>
-          </Split>
+            {user && (
+              <Link href="/profile" className="flex items-center gap-2">
+                {user.picture && (
+                  <Image 
+                    src={user.picture} 
+                    alt="Profile" 
+                    width={32} 
+                    height={32} 
+                    className="rounded-full hover:ring-2 hover:ring-gray-200 transition-all" 
+                  />
+                )}
+              </Link>
+            )}
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto w-full h-full py-5 min-h-0 flex flex-col">
+          <TaskSkeleton />
         </div>
       </div>
     );
@@ -278,20 +291,44 @@ export default function TaskDetailPage() {
               cursor: 'col-resize'
             })}
           >
-            {/* Left Wikipedia: Claim */}
-            <div className="h-full relative">
-              <div className="absolute top-2 left-2 z-10 bg-blue-100 border border-blue-300 rounded px-2 py-1">
-                <span className="text-xs font-semibold text-blue-800">Claim Source</span>
+            {/* Left Panel: Claim Content */}
+            <div className="h-full flex flex-col">
+              <div className="mb-3">
+                <p className="text-base text-black font-semibold leading-6 min-h-[3rem] flex items-center">
+                  {task.claim?.sentence || 'No claim provided'}
+                </p>
               </div>
-              <WikipediaEmbed wikiUrl={task.claim?.url || ''} highlightText={task.claim?.text_span} />
+              <div className="flex-1 relative">
+                <div className="h-full w-full bg-white rounded-lg border border-[#f1f2f4] overflow-hidden">
+                  <iframe
+                    srcDoc={task.claim?.highlighted_html || '<div style="padding: 2rem; text-align: center; color: #666;">No claim content available</div>'}
+                    className="w-full h-full border-0"
+                    title="Claim Content"
+                    sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
             </div>
             
-            {/* Right Wikipedia: Evidence */}
-            <div className="h-full relative">
-              <div className="absolute top-2 left-2 z-10 bg-green-100 border border-green-300 rounded px-2 py-1">
-                <span className="text-xs font-semibold text-green-800">Evidence Source</span>
+            {/* Right Panel: Evidence Content */}
+            <div className="h-full flex flex-col">
+              <div className="mb-3">
+                <p className="text-base text-black font-semibold leading-6 min-h-[3rem] flex items-center">
+                  {task.evidence?.sentence || 'No evidence provided'}
+                </p>
               </div>
-              <WikipediaEmbed wikiUrl={task.evidence?.url || ''} highlightText={task.evidence?.sentence} />
+              <div className="flex-1 relative">
+                <div className="h-full w-full bg-white rounded-lg border border-[#f1f2f4] overflow-hidden">
+                  <iframe
+                    srcDoc={task.evidence?.highlighted_html || '<div style="padding: 2rem; text-align: center; color: #666;">No evidence content available</div>'}
+                    className="w-full h-full border-0"
+                    title="Evidence Content"
+                    sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
             </div>
           </Split>
         </div>

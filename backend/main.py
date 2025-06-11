@@ -205,16 +205,15 @@ def logout(response: Response):
     response.delete_cookie("session")  # Remove session cookie if set
     return {"message": "Logged out successfully"}
 
-def convert_task_urls_to_highlighted(task_data: dict) -> dict:
-    """Convert task URLs to use pre-processed highlighted content endpoints."""
-    task_id = task_data.get("id")
+def include_highlighted_html(task_data: dict, task_obj) -> dict:
+    """Include pre-processed highlighted HTML content directly in the task data."""
     
-    # Set URLs to use the new highlighted content endpoints
-    if task_data.get("claim", {}) and task_id:
-        task_data["claim"]["url"] = f"/api/wiki-highlighted/claim/{task_id}"
+    # Include highlighted HTML directly instead of URLs
+    if task_data.get("claim", {}):
+        task_data["claim"]["highlighted_html"] = task_obj.claim_highlighted_html or ""
     
-    if task_data.get("evidence", {}) and task_id:
-        task_data["evidence"]["url"] = f"/api/wiki-highlighted/evidence/{task_id}"
+    if task_data.get("evidence", {}):
+        task_data["evidence"]["highlighted_html"] = task_obj.evidence_highlighted_html or ""
     
     return task_data
 
@@ -222,22 +221,21 @@ def convert_task_urls_to_highlighted(task_data: dict) -> dict:
 async def get_tasks(current_user: User = Depends(get_current_user)):
     """Get all tasks."""
     tasks = await get_open_tasks()
-    task_list = [
-        {
+    task_list = []
+    for task in tasks:
+        task_data = {
             "id": task.id,
             "claim": {
                 "sentence": task.claim_sentence,
                 "context": task.claim_context,
                 "document_title": task.claim_document_title,
                 "text_span": task.claim_text_span,
-                "url": task.claim_url
             },
             "evidence": {
                 "sentence": task.evidence_sentence,
                 "context": task.evidence_context,
                 "document_title": task.evidence_document_title,
                 "text_span": task.evidence_text_span,
-                "url": task.evidence_url
             },
             "llm_analysis": task.llm_analysis,
             "contradiction_type": task.contradiction_type,
@@ -245,11 +243,10 @@ async def get_tasks(current_user: User = Depends(get_current_user)):
             "difficulty": "Medium",
             "status": task.status.value,
         }
-        for task in tasks
-    ]
+        # Include highlighted HTML directly
+        task_list.append(include_highlighted_html(task_data, task))
     
-    # Convert URLs to use highlighted endpoints
-    return [convert_task_urls_to_highlighted(task_data) for task_data in task_list]
+    return task_list
 
     
 @app.get("/api/tasks/rand")
@@ -267,14 +264,12 @@ async def get_random_task():
             "context": task.claim_context,
             "document_title": task.claim_document_title,
             "text_span": task.claim_text_span,
-            "url": task.claim_url
         },
         "evidence": {
             "sentence": task.evidence_sentence,
             "context": task.evidence_context,
             "document_title": task.evidence_document_title,
             "text_span": task.evidence_text_span,
-            "url": task.evidence_url
         },
         "llm_analysis": task.llm_analysis,
         "contradiction_type": task.contradiction_type,
@@ -284,8 +279,8 @@ async def get_random_task():
         "xp": 25
     }
     
-    # Convert URLs to use highlighted endpoints
-    return convert_task_urls_to_highlighted(task_data)
+    # Include highlighted HTML directly
+    return include_highlighted_html(task_data, task)
 
 import asyncio
 
@@ -304,14 +299,12 @@ async def get_task_by_id(task_id: str, current_user: User = Depends(get_current_
             "context": task.claim_context,
             "document_title": task.claim_document_title,
             "text_span": task.claim_text_span,
-            "url": task.claim_url
         },
         "evidence": {
             "sentence": task.evidence_sentence,
             "context": task.evidence_context,
             "document_title": task.evidence_document_title,
             "text_span": task.evidence_text_span,
-            "url": task.evidence_url
         },
         "llm_analysis": task.llm_analysis,
         "contradiction_type": task.contradiction_type,
@@ -321,8 +314,8 @@ async def get_task_by_id(task_id: str, current_user: User = Depends(get_current_
         "xp": 25
     }
     
-    # Convert URLs to use highlighted endpoints
-    return convert_task_urls_to_highlighted(task_data)
+    # Include highlighted HTML directly
+    return include_highlighted_html(task_data, task)
 
 class TaskSubmission(BaseModel):
     agrees_with_claim: bool
@@ -436,22 +429,21 @@ async def get_user_completed_tasks_list(
     await asyncio.sleep(1)
     
     tasks = await get_user_completed_tasks(user_id)
-    task_list = [
-        {
+    task_list = []
+    for task in tasks:
+        task_data = {
             "id": task.id,
             "claim": {
                 "sentence": task.claim_sentence,
                 "context": task.claim_context,
                 "document_title": task.claim_document_title,
                 "text_span": task.claim_text_span,
-                "url": task.claim_url
             },
             "evidence": {
                 "sentence": task.evidence_sentence,
                 "context": task.evidence_context,
                 "document_title": task.evidence_document_title,
                 "text_span": task.evidence_text_span,
-                "url": task.evidence_url
             },
             "llm_analysis": task.llm_analysis,
             "contradiction_type": task.contradiction_type,
@@ -460,11 +452,10 @@ async def get_user_completed_tasks_list(
             "completed_at": task.updated_at.isoformat(),
             "points_earned": 25 if not task.user_agrees else 10  # More points for disagreeing
         }
-        for task in tasks
-    ]
+        # Include highlighted HTML directly
+        task_list.append(include_highlighted_html(task_data, task))
     
-    # Convert URLs to use highlighted endpoints
-    return [convert_task_urls_to_highlighted(task_data) for task_data in task_list]
+    return task_list
 
 @app.get("/api/leaderboard")
 async def get_leaderboard(

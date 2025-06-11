@@ -5,14 +5,14 @@ export interface TaskData {
     context?: string;
     document_title?: string;
     text_span?: string;
-    url?: string;
+    highlighted_html?: string;
   };
   evidence: {
     sentence: string;
     context?: string;
     document_title?: string;
     text_span?: string;
-    url?: string;
+    highlighted_html?: string;
   };
   llm_analysis?: string;
   contradiction_type?: string;
