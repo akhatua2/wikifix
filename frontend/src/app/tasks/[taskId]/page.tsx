@@ -34,7 +34,6 @@ export default function TaskDetailPage() {
   const [task, setTask] = useState<TaskData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [wikiUrl, setWikiUrl] = useState<string>('');
   const [selectedOption, setSelectedOption] = useState<'agree' | 'disagree' | null>(null);
   const [explanation, setExplanation] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -43,8 +42,7 @@ export default function TaskDetailPage() {
     height: 0
   });
   const [user, setUser] = useState<User | null>(null);
-  const [claimExpanded, setClaimExpanded] = useState(false);
-  const [evidenceExpanded, setEvidenceExpanded] = useState(false);
+
   const analysisRef = useRef<HTMLDivElement>(null);
 
   // Prevent body scrolling
@@ -88,10 +86,6 @@ export default function TaskDetailPage() {
 
         const data = await fetchTask(taskId, userData.token);
         setTask(data);
-        // Set initial wiki URL to claim URL if available
-        if (data.claim?.url) {
-          setWikiUrl(data.claim.url);
-        }
         setError(null);
       } catch (error) {
         console.error('Error fetching task details:', error);
@@ -106,23 +100,7 @@ export default function TaskDetailPage() {
     }
   }, [taskId]);
 
-  // Intercept link clicks in LLM Analysis section
-  useEffect(() => {
-    const ref = analysisRef.current;
-    if (!ref) return;
-    const handleLinkClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'A') {
-        e.preventDefault();
-        const href = (target as HTMLAnchorElement).getAttribute('href');
-        if (href) setWikiUrl(href);
-      }
-    };
-    ref.addEventListener('click', handleLinkClick);
-    return () => {
-      ref.removeEventListener('click', handleLinkClick);
-    };
-  }, [task]);
+
 
   const handleSubmit = async () => {
     if (!selectedOption) {
