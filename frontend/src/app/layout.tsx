@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar';
 import { ConfettiProvider } from '@/contexts/ConfettiContext';
 import { ProgressProvider } from '@/contexts/ProgressContext';
 import { usePathname } from 'next/navigation';
+import { Analytics } from '@vercel/analytics/next';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -27,6 +28,7 @@ export default function RootLayout({
             </NavbarWrapper>
           </ProgressProvider>
         </ConfettiProvider>
+        <Analytics />
       </body>
     </html>
   );
