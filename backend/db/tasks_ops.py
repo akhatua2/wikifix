@@ -149,7 +149,7 @@ async def create_task_from_anli_result(anli_result: dict) -> str:
             evidence_sentence=anli_result.get("evidence_sentence", ""),
             evidence_context=anli_result.get("evidence", ""),
             evidence_document_title=anli_result.get("evidence_document_title", ""),
-            evidence_text_span="",  # Not provided in current JSON format
+            evidence_text_span=anli_result.get("evidence_sentence", ""),
             evidence_url=anli_result.get("evidence_url", ""),
             
             # LLM analysis
