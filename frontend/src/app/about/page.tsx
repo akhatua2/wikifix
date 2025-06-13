@@ -1,7 +1,9 @@
 import React from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 export default function AboutPage() {
+  const router = useRouter();
   return (
     <div className="min-h-screen bg-[#f5f5f5] text-[#121416]">
       <main className="container mx-auto px-4 py-8 max-w-4xl">
@@ -134,7 +136,10 @@ export default function AboutPage() {
         <section className="text-center">
           <h2 className="text-2xl font-extrabold mb-4 drop-shadow-sm">Ready to Make a Difference?</h2>
           <p className="mb-6 text-[#121416] text-base">Start your journey as a Wikipedia fact-checker today. Every contribution helps thousands of people access more reliable information online.</p>
-          <button className="bg-[#121416] text-white px-8 py-3 rounded-lg font-bold text-base hover:bg-[#23272f] transition-colors shadow-lg">
+          <button
+            className="bg-[#121416] text-white px-8 py-3 rounded-lg font-bold text-base hover:bg-[#23272f] transition-colors shadow-lg"
+            onClick={() => router.push('/tasks')}
+          >
             Join the Movement
           </button>
         </section>
