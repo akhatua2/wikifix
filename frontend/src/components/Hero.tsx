@@ -143,7 +143,7 @@ export default function Hero() {
             </span>
           </div>
           <h1 className="text-5xl font-bold text-[#121416] mb-6 leading-tight tracking-tight">
-            {userName ? `Hi ${userName}, Help Improve Wikipedia` : 'Help Improve Wikipedia'}
+            {userName ? `Hi ${userName}, Help Fix Wikipedia` : 'Help Fix Wikipedia'}
           </h1>
           <p className="text-lg text-[#121416] mb-8 font-normal">
             Join Stanford researchers in fixing millions of inconsistencies in Wikipedia. 
