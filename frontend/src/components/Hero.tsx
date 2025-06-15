@@ -147,8 +147,7 @@ export default function Hero() {
           </h1>
           <p className="text-lg text-[#121416] mb-8 font-normal">
             Join Stanford researchers in fixing millions of inconsistencies in Wikipedia. 
-            Your contributions will directly improve the world&apos;s largest knowledge base 
-            and earn you rewards for your impact.
+            Your contributions will directly improve the world&apos;s largest knowledge base.
           </p>
           <div className="rounded-2xl border border-[#f1f2f4] p-6 mb-6 bg-[#f1f2f4]">
             <div className="flex items-center justify-between mb-2">
