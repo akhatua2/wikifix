@@ -69,7 +69,31 @@ export default function FinishOnboarding() {
         });
 
         if (!response.ok) {
-          throw new Error("Failed to save interests");
+          // Handle authentication failures specifically (could be race condition)
+          if (response.status === 401) {
+            // Retry once after a brief delay for potential race condition
+            console.log('Authentication failed during onboarding save, retrying...');
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            const retryResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${userData.id}/interests`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${userData.token}`
+              },
+              body: JSON.stringify({
+                topics,
+                languages,
+                wikipedia_username: wikipediaUsername
+              })
+            });
+            
+            if (!retryResponse.ok) {
+              throw new Error(`Authentication failed during onboarding (${retryResponse.status}). Please try logging out and back in.`);
+            }
+          } else {
+            throw new Error(`Failed to save interests (${response.status})`);
+          }
         }
 
         // Track successful onboarding completion

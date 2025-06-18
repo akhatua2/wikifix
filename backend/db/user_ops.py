@@ -118,31 +118,50 @@ async def get_or_create_user(
         result = await session.execute(select(User).where(User.email == email))
         user = result.scalar_one_or_none()
 
-        # Create if doesn't exist
-        if not user:
-            user = User(
-                email=email,
-                hashed_password=hashed_password,
-                name=name,
-                picture=picture
-            )
-            
-            # Generate referral code for new user
-            user.generate_referral_code()
-            
-            # If user was referred, set referred_by and give points to referrer
-            if referral_code:
-                referrer = await get_user_by_referral_code(referral_code)
-                if referrer:
-                    user.referred_by = referrer.id
-                    referrer.add_points(50)  # Give 50 points to referrer
-                    referrer.increment_referral_count()
-            
-            session.add(user)
-            await session.commit()
-            await session.refresh(user)
+        # If user exists, return it directly
+        if user:
+            return user
 
-        return user
+        # Create new user
+        user = User(
+            email=email,
+            hashed_password=hashed_password,
+            name=name,
+            picture=picture
+        )
+        
+        # Generate referral code for new user
+        user.generate_referral_code()
+        
+        # If user was referred, set referred_by and give points to referrer
+        if referral_code:
+            referrer = await get_user_by_referral_code(referral_code)
+            if referrer:
+                user.referred_by = referrer.id
+                referrer.add_points(50)  # Give 50 points to referrer
+                referrer.increment_referral_count()
+        
+        session.add(user)
+        await session.commit()
+        await session.refresh(user)
+        
+        # CRITICAL FIX: Ensure user is accessible in a new session before returning
+        # This prevents race conditions with subsequent token validation
+        user_id = user.id
+    
+    # Verify user is accessible in a fresh session
+    async with AsyncSessionLocal() as verification_session:
+        result = await verification_session.execute(select(User).where(User.id == user_id))
+        verified_user = result.scalar_one_or_none()
+        if not verified_user:
+            # If for some reason the user isn't immediately accessible, retry once
+            import asyncio
+            await asyncio.sleep(0.1)  # Brief delay for database consistency
+            result = await verification_session.execute(select(User).where(User.id == user_id))
+            verified_user = result.scalar_one_or_none()
+            if not verified_user:
+                raise Exception(f"Failed to create user {email} - database consistency issue")
+        return verified_user
 
 
 async def get_user_completed_tasks(user_id: str) -> List:

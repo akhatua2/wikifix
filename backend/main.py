@@ -58,11 +58,17 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     
     user = await get_user_by_id(payload["sub"])
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        # ROBUSTNESS FIX: Retry once for newly created users (race condition protection)
+        import asyncio
+        await asyncio.sleep(0.1)
+        user = await get_user_by_id(payload["sub"])
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
     
     return user
 
@@ -141,17 +147,32 @@ async def auth(request: Request):
         # Generate JWT token
         jwt_token = db_user.generate_token()
         
+        # ONBOARDING FIX: Get fresh user data to properly determine onboarding status
+        # This prevents issues with session detachment and stale data
+        fresh_user = await get_user_by_id(db_user.id)
+        if not fresh_user:
+            # This should never happen, but just in case
+            fresh_user = db_user
+        
         # Check if user needs onboarding (has no topics or languages set)
-        needs_onboarding = not db_user.get_topics() and not db_user.get_languages()
+        needs_onboarding = not fresh_user.get_topics() and not fresh_user.get_languages()
+        
+        # DEBUG: Log onboarding decision
+        print(f"[AUTH] User onboarding check:")
+        print(f"  User ID: {fresh_user.id}")
+        print(f"  Email: {fresh_user.email}")
+        print(f"  Topics: {fresh_user.get_topics()}")
+        print(f"  Languages: {fresh_user.get_languages()}")
+        print(f"  Needs onboarding: {needs_onboarding}")
         
         # Send user data to frontend
         user_to_frontend = {
-            "id": db_user.id,
-            "email": db_user.email,
-            "name": db_user.name,
-            "picture": db_user.picture,
+            "id": fresh_user.id,
+            "email": fresh_user.email,
+            "name": fresh_user.name,
+            "picture": fresh_user.picture,
             "token": jwt_token,
-            "referral_code": db_user.referral_code,
+            "referral_code": fresh_user.referral_code,
             "needs_onboarding": needs_onboarding
         }
         
