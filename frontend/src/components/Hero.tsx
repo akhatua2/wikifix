@@ -85,31 +85,88 @@ export default function Hero() {
       const left = window.screenX + (window.outerWidth - width) / 2;
       const top = window.screenY + (window.outerHeight - height) / 2;
       
-      window.open(
+      const popup = window.open(
         `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'}/auth/google/login`,
         'Google Login',
         `width=${width},height=${height},left=${left},top=${top}`
       );
 
-      // Listen for the login success message
-      window.addEventListener('message', (event) => {
-        if (event.origin === process.env.NEXT_PUBLIC_API_URL || event.origin === 'http://localhost:8001') {
-          const userData = event.data;
-          if (userData && userData.token) {
-            localStorage.setItem('wikifacts_user', JSON.stringify(userData));
-            setIsLoggedIn(true);
-            
-            // Track successful login from hero
-            trackAction('login_success_from_hero', {
-              user_id: userData.id,
-              email: userData.email,
-              source: 'hero_start_contributing'
-            });
-            
-            router.push('/tasks/new');
-          }
+      if (!popup) {
+        alert('Popup blocked. Please allow popups for this site.');
+        return;
+      }
+
+      // Define message handler with proper cleanup
+      const messageHandler = (event: MessageEvent) => {
+        // Validate origin to prevent security issues
+        const expectedOrigin = new URL(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001').origin;
+        if (event.origin !== expectedOrigin) {
+          console.log('Ignoring message from unexpected origin:', event.origin);
+          return;
         }
-      });
+
+        // Check for valid user data with all required fields
+        if (event.data?.email && event.data?.token && event.data?.id) {
+          console.log('Received valid user data from hero:', event.data);
+          localStorage.setItem('wikifacts_user', JSON.stringify(event.data));
+          setIsLoggedIn(true);
+          
+          // Dispatch custom event to notify other components in the same tab
+          window.dispatchEvent(new CustomEvent('wikifacts_user_updated', {
+            detail: event.data
+          }));
+          
+          // Track successful login from hero
+          trackAction('login_success_from_hero', {
+            user_id: event.data.id,
+            email: event.data.email,
+            source: 'hero_start_contributing'
+          });
+          
+          // Redirect based on onboarding status
+          if (event.data.needs_onboarding) {
+            window.location.href = '/onboarding/topics';
+          } else {
+            router.push('/tasks');
+          }
+          
+          // Clean up
+          cleanup();
+        } else if (event.data?.error) {
+          console.error('OAuth error from hero:', event.data.error);
+          alert('Login failed. Please try again.');
+          cleanup();
+        }
+      };
+
+      const cleanup = () => {
+        window.removeEventListener("message", messageHandler);
+        if (popup && !popup.closed) {
+          popup.close();
+        }
+        if (checkClosedInterval) {
+          clearInterval(checkClosedInterval);
+        }
+      };
+
+      // Add the message listener
+      window.addEventListener("message", messageHandler);
+      
+      // Monitor if popup is manually closed
+      const checkClosedInterval = setInterval(() => {
+        if (popup.closed) {
+          console.log('Popup was closed manually from hero');
+          cleanup();
+        }
+      }, 1000);
+      
+      // Timeout after 5 minutes
+      setTimeout(() => {
+        if (!popup.closed) {
+          console.log('Login timeout from hero');
+          cleanup();
+        }
+      }, 300000);
     }
   };
 

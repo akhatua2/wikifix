@@ -51,8 +51,19 @@ export default function Navbar() {
         setCompletedTasks(count);
       }
     };
+    
+    // Listen for custom event for same-tab localStorage changes
+    const onUserUpdate = (event: CustomEvent) => {
+      console.log('Navbar received user update:', event.detail);
+      setUser(event.detail);
+    };
+    
     window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    window.addEventListener("wikifacts_user_updated", onUserUpdate as EventListener);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("wikifacts_user_updated", onUserUpdate as EventListener);
+    };
   }, [mounted]);
 
   // Close dropdown on outside click
@@ -147,6 +158,11 @@ export default function Navbar() {
         console.log('Received valid user data:', event.data);
         localStorage.setItem("wikifacts_user", JSON.stringify(event.data));
         setUser(event.data);
+        
+        // Dispatch custom event to notify other components in the same tab
+        window.dispatchEvent(new CustomEvent('wikifacts_user_updated', {
+          detail: event.data
+        }));
         
         // Track successful login
         trackAction('login_success', {
