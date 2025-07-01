@@ -17,5 +17,6 @@ dependencies = [
     "pyppeteer>=2.0.0",
     "requests>=2.32.3",
     "sqlalchemy>=2.0.41",
+    "thefuzz>=0.22.1",
     "uvicorn>=0.34.2",
 ]

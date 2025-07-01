@@ -19,3 +19,9 @@ async def init_models() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
+
+async def drop_all_tables() -> None:
+    """Drop all database tables."""
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+
