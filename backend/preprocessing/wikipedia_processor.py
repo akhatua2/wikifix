@@ -106,6 +106,8 @@ class WikipediaProcessor:
         if not text_to_find or not html_content:
             return html_content, False
         
+        html_content = re.sub(r'<a [^>]*>(.*?)</a>', r'\1', html_content, flags=re.DOTALL)
+        
         print(f"🔍 Fuzzy matching on safe HTML chunks for: '{text_to_find[:50]}...'")
         
         # Get safe HTML chunks that don't break tag boundaries
@@ -140,30 +142,11 @@ class WikipediaProcessor:
             success = 'wikifix-highlight' in highlighted
             
             if success:
-                # Add CSS and auto-scroll
+                # Add simple yellow highlight CSS
                 css = """
 <style>
 .wikifix-highlight {
-    background-color: #ffff99 !important;
-    padding: 2px 4px !important;
-    border-radius: 3px !important;
-    font-weight: bold !important;
-    border: 2px solid #ff6b6b !important;
-}
-#highlighted-text {
-    scroll-margin-top: 100px;
-}
-.wikifix-match-info {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    background: #4CAF50;
-    color: white;
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-family: Arial, sans-serif;
-    font-size: 12px;
-    z-index: 1000;
+    background-color: yellow !important;
 }
 </style>
 <script>
@@ -175,17 +158,10 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>"""
                 
-                # Add match info badge
-                match_info = f'<div class="wikifix-match-info">Match: {score:.1f}%</div>'
-                
                 if '<head>' in highlighted:
                     highlighted = highlighted.replace('<head>', f'<head>{css}', 1)
                 else:
                     highlighted = css + highlighted
-                
-                # Add match info to body
-                if '<body>' in highlighted:
-                    highlighted = highlighted.replace('<body>', f'<body>{match_info}', 1)
                 
                 print(f"✅ Successfully highlighted HTML content")
                 return highlighted, True
