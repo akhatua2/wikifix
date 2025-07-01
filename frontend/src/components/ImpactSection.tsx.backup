@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaWikipediaW, FaCheckCircle } from 'react-icons/fa';
+import { FaTrophy, FaWikipediaW, FaCheckCircle } from 'react-icons/fa';
 import Image from 'next/image';
 
 interface ImpactSectionProps {
@@ -13,7 +13,7 @@ export default function ImpactSection({ totalContributors, totalFixed }: ImpactS
       <div className="max-w-7xl mx-auto px-10">
         <h2 className="text-3xl font-bold text-center mb-12 text-[#121416]">Be Part of the Wikipedia Improvement Movement</h2>
         
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-3 gap-8">
           {/* Impact Card */}
           <div className="bg-white p-8 rounded-2xl shadow-sm">
             <div className="text-[#1ca152] text-4xl mb-4">
@@ -42,6 +42,22 @@ export default function ImpactSection({ totalContributors, totalFixed }: ImpactS
             <div className="mt-4 text-sm text-gray-600">
               <span className="font-semibold">24/7</span> active community
             </div>
+          </div>
+
+          {/* Rewards Card */}
+          <div className="bg-white p-8 rounded-2xl shadow-sm">
+            <div className="text-[#1ca152] text-4xl mb-4">
+              <FaTrophy />
+            </div>
+            <h3 className="text-xl font-bold mb-4 text-[#121416]">Earn Rewards</h3>
+            <p className="text-gray-700">
+              Top contributors receive monthly prizes and recognition. Points earned can be redeemed for:
+            </p>
+            <ul className="mt-4 text-sm text-gray-700 list-disc list-inside">
+              <li>Amazon gift cards</li>
+              <li>Wikipedia merchandise</li>
+              <li>Special recognition on our leaderboard</li>
+            </ul>
           </div>
         </div>
 
@@ -77,4 +93,4 @@ export default function ImpactSection({ totalContributors, totalFixed }: ImpactS
       </div>
     </div>
   );
-}
+} 
