@@ -10,12 +10,11 @@ import subprocess
 import urllib.parse
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-from bs4 import BeautifulSoup
-import asyncio
 import sys
+from rapidfuzz import process, fuzz
 
 # Add backend to path for imports
-backend_dir = Path(__file__).parent
+backend_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_dir))
 
 from db.tasks_ops import Task, TaskStatus, AsyncSessionLocal
@@ -25,7 +24,8 @@ class WikipediaProcessor:
     """Simple Wikipedia processor that does everything."""
     
     def __init__(self):
-        self.saved_dir = Path("saved_site")
+        # Use absolute path for saved_site
+        self.saved_dir = Path("/data1/akhatua/wikifix/backend/saved_site")
         self.saved_dir.mkdir(exist_ok=True)
         
     def extract_page_name(self, url: str) -> str:
@@ -75,36 +75,95 @@ class WikipediaProcessor:
             print(f"❌ Error downloading {page_name}: {e}")
             return False
     
+    def split_html_safely(self, html_content: str) -> List[str]:
+        """Split HTML into complete, valid chunks that don't break tag boundaries."""
+        chunks = []
+        
+        # Find complete HTML elements: <p>...</p>, <div>...</div>, <td>...</td>, etc.
+        element_pattern = r'(<(?:p|div|td|li|span|h[1-6])[^>]*>.*?</(?:p|div|td|li|span|h[1-6])>)'
+        elements = re.findall(element_pattern, html_content, re.DOTALL)
+        
+        # Add complete elements as chunks
+        for element in elements:
+            element = element.strip()
+            if len(element) > 30:  # Only substantial chunks
+                chunks.append(element)
+        
+        # Also find text content that's not inside the above elements
+        # This catches text between elements that might be missed
+        remaining_text = re.sub(element_pattern, '', html_content, flags=re.DOTALL)
+        text_chunks = re.findall(r'>([^<]{20,})<', remaining_text)  # Text between tags, min 20 chars
+        
+        for text in text_chunks:
+            text = text.strip()
+            if len(text) > 20:
+                chunks.append(text)
+        
+        return chunks
+
     def highlight_text_in_html(self, html_content: str, text_to_find: str) -> Tuple[str, bool]:
-        """Find and highlight text in HTML content."""
+        """Find and highlight text in HTML content using fuzzy matching on safe HTML chunks."""
         if not text_to_find or not html_content:
             return html_content, False
-            
-        # Simple case-insensitive search and replace
-        pattern = re.escape(text_to_find).replace(r'\ ', r'\s+')
-        highlighted = re.sub(
-            pattern,
-            f'<span class="wikifix-highlight" id="highlighted-text">{text_to_find}</span>',
-            html_content,
-            count=1,
-            flags=re.IGNORECASE | re.DOTALL
+        
+        print(f"🔍 Fuzzy matching on safe HTML chunks for: '{text_to_find[:50]}...'")
+        
+        # Get safe HTML chunks that don't break tag boundaries
+        html_chunks = self.split_html_safely(html_content)
+        
+        if not html_chunks:
+            print("❌ No safe HTML chunks found for matching")
+            return html_content, False
+        
+        print(f"🔍 Searching {len(html_chunks)} safe HTML chunks...")
+        
+        # Find best match using lower threshold for HTML content
+        result = process.extractOne(
+            text_to_find,
+            html_chunks,
+            scorer=fuzz.token_sort_ratio,
+            score_cutoff=10  # Lower threshold for HTML content
         )
         
-        # Check if highlighting worked
-        success = 'wikifix-highlight' in highlighted
-        
-        if success:
-            # Add CSS and auto-scroll
-            css = """
+        if result:
+            best_match_html, score, _ = result
+            print(f"✅ Best HTML match (score {score:.1f}): '{best_match_html[:50]}...'")
+            
+            # Highlight directly in original HTML
+            highlighted = html_content.replace(
+                best_match_html,
+                f'<span class="wikifix-highlight" id="highlighted-text">{best_match_html}</span>',
+                1
+            )
+            
+            # Check if highlighting worked
+            success = 'wikifix-highlight' in highlighted
+            
+            if success:
+                # Add CSS and auto-scroll
+                css = """
 <style>
 .wikifix-highlight {
     background-color: #ffff99 !important;
     padding: 2px 4px !important;
     border-radius: 3px !important;
     font-weight: bold !important;
+    border: 2px solid #ff6b6b !important;
 }
 #highlighted-text {
     scroll-margin-top: 100px;
+}
+.wikifix-match-info {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: #4CAF50;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    z-index: 1000;
 }
 </style>
 <script>
@@ -115,13 +174,27 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>"""
-            
-            if '<head>' in highlighted:
-                highlighted = highlighted.replace('<head>', f'<head>{css}', 1)
+                
+                # Add match info badge
+                match_info = f'<div class="wikifix-match-info">Match: {score:.1f}%</div>'
+                
+                if '<head>' in highlighted:
+                    highlighted = highlighted.replace('<head>', f'<head>{css}', 1)
+                else:
+                    highlighted = css + highlighted
+                
+                # Add match info to body
+                if '<body>' in highlighted:
+                    highlighted = highlighted.replace('<body>', f'<body>{match_info}', 1)
+                
+                print(f"✅ Successfully highlighted HTML content")
+                return highlighted, True
             else:
-                highlighted = css + highlighted
-        
-        return highlighted, success
+                print(f"❌ Failed to highlight HTML content")
+                return html_content, False
+        else:
+            print(f"❌ No good HTML matches found (min score: 50)")
+            return html_content, False
     
     def fix_html_urls(self, html_content: str, page_name: str) -> str:
         """Fix URLs in HTML for local serving."""

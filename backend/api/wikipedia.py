@@ -9,7 +9,7 @@ import mimetypes
 from pathlib import Path
 
 from db.tasks_ops import Task, AsyncSessionLocal
-from wikipedia_processor import get_local_html_content
+from preprocessing.wikipedia_processor import get_local_html_content
 
 router = APIRouter()
 

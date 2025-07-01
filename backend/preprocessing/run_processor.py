@@ -10,11 +10,11 @@ import sys
 from pathlib import Path
 
 # Add backend to path
-backend_dir = Path(__file__).parent
+backend_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_dir))
 
-from wikipedia_processor import WikipediaProcessor
-from db.db import init_models, drop_all_tables
+from preprocessing.wikipedia_processor import WikipediaProcessor
+from db.db import init_models, drop_all_tables, drop_tasks_table
 
 
 async def main():
@@ -57,8 +57,8 @@ async def main():
     
     # Initialize database
     if args.recreate_db:
-        print("🗑️  Dropping existing tables...")
-        await drop_all_tables()
+        print("🗑️  Dropping and recreating only the tasks table...")
+        await drop_tasks_table()
     
     print("🏗️  Initializing database...")
     await init_models()
