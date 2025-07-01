@@ -75,72 +75,61 @@ class WikipediaProcessor:
             print(f"❌ Error downloading {page_name}: {e}")
             return False
     
-    def split_html_safely(self, html_content: str) -> List[str]:
-        """Split HTML into complete, valid chunks that don't break tag boundaries."""
-        chunks = []
-        
-        # Find complete HTML elements: <p>...</p>, <div>...</div>, <td>...</td>, etc.
-        element_pattern = r'(<(?:p|div|td|li|span|h[1-6])[^>]*>.*?</(?:p|div|td|li|span|h[1-6])>)'
-        elements = re.findall(element_pattern, html_content, re.DOTALL)
-        
-        # Add complete elements as chunks
-        for element in elements:
-            element = element.strip()
-            if len(element) > 30:  # Only substantial chunks
-                chunks.append(element)
-        
-        # Also find text content that's not inside the above elements
-        # This catches text between elements that might be missed
-        remaining_text = re.sub(element_pattern, '', html_content, flags=re.DOTALL)
-        text_chunks = re.findall(r'>([^<]{20,})<', remaining_text)  # Text between tags, min 20 chars
-        
-        for text in text_chunks:
-            text = text.strip()
-            if len(text) > 20:
-                chunks.append(text)
-        
-        return chunks
+    def split_html_by_sentence(self, html_content: str) -> List[str]:
+        """Split HTML content into sentences, preserving all HTML formatting."""
+        # This regex matches sentences ending with ., !, or ? (possibly followed by quotes or HTML tags)
+        sentence_pattern = r'[^.!?]*[.!?]'  # Simple heuristic
+        sentences = re.findall(sentence_pattern, html_content, re.DOTALL)
+        # Remove empty/very short sentences
+        return [s.strip() for s in sentences if len(s.strip()) > 10]
 
     def highlight_text_in_html(self, html_content: str, text_to_find: str) -> Tuple[str, bool]:
-        """Find and highlight text in HTML content using fuzzy matching on safe HTML chunks."""
+        """Find and highlight text in HTML content using fuzzy matching on sentence chunks."""
         if not text_to_find or not html_content:
             return html_content, False
         
         html_content = re.sub(r'<a [^>]*>(.*?)</a>', r'\1', html_content, flags=re.DOTALL)
-        
-        print(f"🔍 Fuzzy matching on safe HTML chunks for: '{text_to_find[:50]}...'")
-        
-        # Get safe HTML chunks that don't break tag boundaries
-        html_chunks = self.split_html_safely(html_content)
-        
+
+        # Use only the first sentence of text_to_find
+        first_sentence_match = re.match(r'(.+?[.!?])', text_to_find.strip(), re.DOTALL)
+        if first_sentence_match:
+            text_to_match = first_sentence_match.group(1).strip()
+        else:
+            text_to_match = text_to_find.strip()
+
+        print(f"🔍 Fuzzy matching on HTML sentences for: '{text_to_match[:50]}...'")
+
+        # Get sentence chunks
+        html_chunks = self.split_html_by_sentence(html_content)
+
         if not html_chunks:
-            print("❌ No safe HTML chunks found for matching")
+            print("❌ No sentence chunks found for matching")
             return html_content, False
-        
-        print(f"🔍 Searching {len(html_chunks)} safe HTML chunks...")
-        
+
+        print(f"🔍 Searching {len(html_chunks)} sentence chunks...")
+
         # Find best match using lower threshold for HTML content
         result = process.extractOne(
-            text_to_find,
+            text_to_match,
             html_chunks,
             scorer=fuzz.token_sort_ratio,
             score_cutoff=10  # Lower threshold for HTML content
         )
-        
+
         if result:
             best_match_html, score, _ = result
             print(f"✅ Best HTML match (score {score:.1f}): '{best_match_html[:50]}...'")
-            
+
             # Highlight directly in original HTML
             highlighted = html_content.replace(
                 best_match_html,
                 f'<span class="wikifix-highlight" id="highlighted-text">{best_match_html}</span>',
                 1
             )
-            
+
             # Check if highlighting worked
             success = 'wikifix-highlight' in highlighted
-            
+
             if success:
                 # Add simple yellow highlight CSS
                 css = """
@@ -157,12 +146,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>"""
-                
+
                 if '<head>' in highlighted:
                     highlighted = highlighted.replace('<head>', f'<head>{css}', 1)
                 else:
                     highlighted = css + highlighted
-                
+
                 print(f"✅ Successfully highlighted HTML content")
                 return highlighted, True
             else:

@@ -1,5 +1,5 @@
 from typing import List, Optional
-from sqlalchemy import select, ForeignKey, Column, String, DateTime, Boolean, Text
+from sqlalchemy import select, ForeignKey, Column, String, DateTime, Boolean, Text, Index
 from sqlalchemy.ext.asyncio import AsyncSession
 from .db import AsyncSessionLocal, Base
 from db.user_ops import User
@@ -14,7 +14,18 @@ class TaskStatus(PyEnum):
 
 class Task(Base):
     __tablename__ = "tasks"
-    __table_args__ = {"extend_existing": True}
+    __table_args__ = (
+        # Individual indexes for common queries
+        Index('ix_tasks_status', 'status'),
+        Index('ix_tasks_completed_by', 'completed_by'),
+        Index('ix_tasks_created_at', 'created_at'),
+        Index('ix_tasks_updated_at', 'updated_at'),
+        
+        # Composite index for open tasks ordered by date (most common query pattern)
+        Index('ix_tasks_status_created_at', 'status', 'created_at'),
+        
+        {"extend_existing": True}
+    )
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     
