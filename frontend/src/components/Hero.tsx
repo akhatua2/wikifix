@@ -218,7 +218,7 @@ export default function Hero() {
             </div>
             <div className="w-full h-2 bg-white rounded-full overflow-hidden mb-2">
               <div 
-                className="h-full bg-[#1ca152] rounded-full transition-all duration-500" 
+                className="h-full bg-[#2563eb] rounded-full transition-all duration-500" 
                 style={{ width: `${progressPercentage}%` }}
               ></div>
             </div>
