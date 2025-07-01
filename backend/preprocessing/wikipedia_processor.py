@@ -120,12 +120,14 @@ class WikipediaProcessor:
             best_match_html, score, _ = result
             print(f"✅ Best HTML match (score {score:.1f}): '{best_match_html[:50]}...'")
 
-            # Highlight directly in original HTML
-            highlighted = html_content.replace(
-                best_match_html,
-                f'<span class="wikifix-highlight" id="highlighted-text">{best_match_html}</span>',
-                1
-            )
+            # Highlight safely - find first substantial text node without breaking HTML structure
+            text_match = re.search(r'>([^<]{20,}?)[<.]', best_match_html)  # Find text nodes with 20+ chars
+            if text_match:
+                text_to_highlight = text_match.group(1).strip()
+                inner_highlighted = best_match_html.replace(text_to_highlight, f'<span class="wikifix-highlight" id="highlighted-text">{text_to_highlight}</span>', 1)
+            else:
+                inner_highlighted = f'<span class="wikifix-highlight" id="highlighted-text">{best_match_html}</span>'
+            highlighted = html_content.replace(best_match_html, inner_highlighted, 1)
 
             # Check if highlighting worked
             success = 'wikifix-highlight' in highlighted
