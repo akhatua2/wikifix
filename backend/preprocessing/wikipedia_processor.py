@@ -77,11 +77,8 @@ class WikipediaProcessor:
     
     def split_html_by_sentence(self, html_content: str) -> List[str]:
         """Split HTML content into sentences, preserving all HTML formatting."""
-        # This regex matches sentences ending with ., !, or ? (possibly followed by quotes or HTML tags)
-        sentence_pattern = r'[^.!?]*[.!?]'  # Simple heuristic
-        sentences = re.findall(sentence_pattern, html_content, re.DOTALL)
-        # Remove empty/very short sentences
-        return [s.strip() for s in sentences if len(s.strip()) > 10]
+        from html_sentence_splitter import split_html_by_sentence
+        return split_html_by_sentence(html_content)
 
     def highlight_text_in_html(self, html_content: str, text_to_find: str) -> Tuple[str, bool]:
         """Find and highlight text in HTML content using fuzzy matching on sentence chunks."""
