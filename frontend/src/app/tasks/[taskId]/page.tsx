@@ -164,6 +164,11 @@ export default function TaskDetailPage() {
           'Authorization': `Bearer ${userData.token}`
         }
       });
+      if (completedTasksResponse.status === 401) {
+        const { handleAuthError } = await import('@/utils/auth');
+        handleAuthError();
+        return;
+      }
       if (completedTasksResponse.ok) {
         const data = await completedTasksResponse.json();
         const newCount = data.total_completed || 0;

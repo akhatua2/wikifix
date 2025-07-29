@@ -24,22 +24,24 @@ export default function Hero() {
     // Track page view
     trackPage('home');
     
-    const userData = JSON.parse(localStorage.getItem("wikifacts_user") || "null");
-    setIsLoggedIn(!!userData);
-    if (userData?.name) {
-      // Extract first name from full name
-      const firstName = userData.name.split(' ')[0];
-      setUserName(firstName);
-      
-      // Track returning user view
-      trackAction('returning_user_home_view', {
-        user_id: userData.id,
-        user_name: firstName
-      });
-    } else {
-      // Track new visitor
-      trackAction('new_visitor_home_view', {});
-    }
+    import('@/utils/auth').then(({ getValidUser }) => {
+      const userData = getValidUser();
+      setIsLoggedIn(!!userData);
+      if (userData?.name) {
+        // Extract first name from full name
+        const firstName = userData.name.split(' ')[0];
+        setUserName(firstName);
+        
+        // Track returning user view
+        trackAction('returning_user_home_view', {
+          user_id: userData.id,
+          user_name: firstName
+        });
+      } else {
+        // Track new visitor
+        trackAction('new_visitor_home_view', {});
+      }
+    });
   }, [trackPage, trackAction]);
 
   useEffect(() => {

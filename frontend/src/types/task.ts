@@ -36,6 +36,8 @@ export const XP_VALUES = {
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
 
+import { handleAuthError } from '@/utils/auth';
+
 export async function fetchTask(taskId: string, token: string): Promise<TaskData> {
   const response = await fetch(`${API_URL}/api/tasks/${taskId}`, {
     headers: {
@@ -43,6 +45,10 @@ export async function fetchTask(taskId: string, token: string): Promise<TaskData
     }
   });
   if (!response.ok) {
+    if (response.status === 401) {
+      handleAuthError();
+      throw new Error('Authentication failed');
+    }
     throw new Error('Failed to fetch task details');
   }
   return response.json();
@@ -55,6 +61,10 @@ export async function fetchRandomTask(token: string): Promise<TaskData> {
     }
   });
   if (!response.ok) {
+    if (response.status === 401) {
+      handleAuthError();
+      throw new Error('Authentication failed');
+    }
     throw new Error('Failed to fetch random task');
   }
   return response.json();
@@ -67,6 +77,10 @@ export async function fetchAllTasks(token: string): Promise<TaskData[]> {
     }
   });
   if (!response.ok) {
+    if (response.status === 401) {
+      handleAuthError();
+      throw new Error('Authentication failed');
+    }
     throw new Error('Failed to fetch tasks');
   }
   return response.json();
@@ -86,6 +100,10 @@ export async function submitTask(
     body: JSON.stringify(submission)
   });
   if (!response.ok) {
+    if (response.status === 401) {
+      handleAuthError();
+      throw new Error('Authentication failed');
+    }
     throw new Error('Failed to submit task');
   }
   return true;
